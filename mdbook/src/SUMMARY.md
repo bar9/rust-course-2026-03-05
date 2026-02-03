@@ -19,22 +19,23 @@
 - [Error Handling Deep Dive](./day2/10_error_handling.md)
 - [Iterators & Functional Programming](./day2/11_iterators.md)
 - [Modules & Visibility](./day2/12_modules_visibility.md)
+ 
+# Day 3: Building programs & advanced topics
 
-# Day 3: ESP32-C3 Temperature Monitor - From Sensor to System
+- [Cargo & Dependency Management](./day3/13_cargo.md)
+- [Code Coverage with CodeCov](./day3/14_codecov.md)
+- [Macros & Code Generation](./day3/15_macros.md)
+- [Unsafe Rust & FFI with Bindgen](./day3/16_unsafe_ffi.md)
+- [Embedded HAL - Hardware Register Access & Volatile Memory](./day3/17_embedded_hal.md)
+- [Async and Concurrency](./day3/18_async_concurrency.md)
+- [Rust Patterns](./day3/19_rust_patterns.md)
 
-- [Hardware Hello - ESP32-C3 Basics](./day3/13_hardware_hello.md)
-- [Embedded Foundations - no_std from the Start](./day3/14_embedded_foundations.md)
-- [Testing Embedded Code](./day3/15_testing_embedded.md)
-- [Data & Communication](./day3/16_data_communication.md)
-- [Integration & Deployment](./day3/17_integration_deployment.md)
-- [Performance Optimization & Power Management](./day3/18_complete_system.md)
+# Day 4: ESP32-C3 Temperature Monitor - From Sensor to System
 
-# Day 4: Enterprise Transition - From C++/.NET to Production Rust
+- [Hardware Hello - ESP32-C3 Basics](day4/20_hardware_hello.md)
+- [Embedded Foundations - no_std from the Start](day4/21_embedded_foundations.md)
+- [Testing Embedded Code](day4/22_testing_embedded.md)
+- [Data & Communication](day4/23_data_communication.md)
+- [Integration & Deployment](day4/24_integration_deployment.md)
+- [Performance Optimization & Power Management](day4/25_complete_system.md)
 
-- [Cargo & Dependency Management](./transfer/19_cargo.md)
-- [Code Coverage with CodeCov](./transfer/20_codecov.md)
-- [Macros & Code Generation](./transfer/21_macros.md)
-- [Unsafe Rust & FFI with Bindgen](./transfer/22_unsafe_ffi.md)
-- [Embedded HAL - Hardware Register Access & Volatile Memory](./transfer/23_embedded_hal.md)
-- [Async and Concurrency](./transfer/24_async_concurrency.md)
-- [Rust Patterns](./transfer/25_rust_patterns.md)
