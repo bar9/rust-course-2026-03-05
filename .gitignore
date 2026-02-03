@@ -26,3 +26,5 @@ mysolutions/*/
 
 # Claude Code assistant file
 CLAUDE.md
+
+mdbook/book/*/
