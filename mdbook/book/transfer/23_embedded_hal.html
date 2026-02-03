@@ -1,0 +1,842 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Embedded HAL - Hardware Register Access &amp; Volatile Memory - Rust Course 2025</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Interactive Rust programming course built with mdBook">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Rust Course 2025</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/bar9/rust-course-2025-11-20" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/bar9/rus    t-course-2025-11-20/edit/main/mdbook/src/transfer/23_embedded_hal.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-23-embedded-hal---hardware-register-access--volatile-memory"><a class="header" href="#chapter-23-embedded-hal---hardware-register-access--volatile-memory">Chapter 23: Embedded HAL - Hardware Register Access &amp; Volatile Memory</a></h1>
+<p>This chapter covers hardware abstraction in embedded Rust, focusing on memory-mapped I/O, volatile access patterns, and the embedded-hal ecosystem. These concepts are essential for writing safe, portable embedded code.</p>
+<h2 id="part-1-why-volatile-access-matters"><a class="header" href="#part-1-why-volatile-access-matters">Part 1: Why Volatile Access Matters</a></h2>
+<h3 id="the-compiler-optimization-problem"><a class="header" href="#the-compiler-optimization-problem">The Compiler Optimization Problem</a></h3>
+<p>When accessing regular memory, the compiler assumes it has complete control and can optimize away “redundant” operations:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Regular memory access - compiler can optimize
+fn regular_memory() {
+    let mut value = 0u32;
+
+    value = 1;  // Compiler might optimize away
+    value = 2;  // Only this write matters
+    value = 3;  // And this one
+
+    let x = value;  // Reads 3
+    let y = value;  // Compiler might reuse x instead of reading again
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Hardware registers are different - they’re windows into hardware state that can change independently:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Hardware register at address 0x4000_0000
+const GPIO_OUT: *mut u32 = 0x4000_0000 as *mut u32;
+
+unsafe fn bad_gpio_control() {
+    // ❌ WRONG: Compiler might optimize these away!
+    *GPIO_OUT = 0b0001;  // Turn on LED 1
+    *GPIO_OUT = 0b0010;  // Turn on LED 2
+    *GPIO_OUT = 0b0100;  // Turn on LED 3
+
+    // Compiler might only emit the last write!
+}
+
+unsafe fn good_gpio_control() {
+    use core::ptr;
+
+    // ✅ CORRECT: Volatile writes are never optimized away
+    ptr::write_volatile(GPIO_OUT, 0b0001);  // Turn on LED 1
+    ptr::write_volatile(GPIO_OUT, 0b0010);  // Turn on LED 2
+    ptr::write_volatile(GPIO_OUT, 0b0100);  // Turn on LED 3
+
+    // All three writes will happen!
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="memory-mapped-io-fundamentals"><a class="header" href="#memory-mapped-io-fundamentals">Memory-Mapped I/O Fundamentals</a></h3>
+<p>In embedded systems, hardware peripherals appear as memory addresses:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// ESP32-C3 GPIO registers (simplified)
+const GPIO_BASE: usize = 0x6000_4000;
+
+// GPIO output registers
+const GPIO_OUT_W1TS: *mut u32 = (GPIO_BASE + 0x0008) as *mut u32;  // Set bits
+const GPIO_OUT_W1TC: *mut u32 = (GPIO_BASE + 0x000C) as *mut u32;  // Clear bits
+const GPIO_OUT: *mut u32 = (GPIO_BASE + 0x0004) as *mut u32;       // Direct write
+const GPIO_IN: *const u32 = (GPIO_BASE + 0x003C) as *const u32;    // Read input
+
+unsafe fn control_gpio() {
+    use core::ptr;
+
+    // Set pin 5 high (write 1 to set)
+    ptr::write_volatile(GPIO_OUT_W1TS, 1 &lt;&lt; 5);
+
+    // Clear pin 5 (write 1 to clear - yes, really!)
+    ptr::write_volatile(GPIO_OUT_W1TC, 1 &lt;&lt; 5);
+
+    // Read current pin states
+    let pins = ptr::read_volatile(GPIO_IN);
+    let pin5_state = (pins &gt;&gt; 5) &amp; 1;
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="why-each-access-must-be-volatile"><a class="header" href="#why-each-access-must-be-volatile">Why Each Access Must Be Volatile</a></h3>
+<p>Hardware registers can change at any time due to:</p>
+<ul>
+<li>External signals (button presses, sensor readings)</li>
+<li>Hardware state machines (timers, DMA completion)</li>
+<li>Interrupt handlers modifying registers</li>
+<li>Peripheral operations completing</li>
+</ul>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Timer register that counts up automatically
+const TIMER_COUNTER: *const u32 = 0x6002_0000 as *const u32;
+
+unsafe fn wait_for_timeout() {
+    use core::ptr;
+
+    // ❌ WRONG: Compiler might read once and cache
+    while *TIMER_COUNTER &lt; 1000 {
+        // Infinite loop - compiler assumes value never changes!
+    }
+
+    // ✅ CORRECT: Each read goes to hardware
+    while ptr::read_volatile(TIMER_COUNTER) &lt; 1000 {
+        // Works correctly - reads actual hardware value
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="part-2-safe-register-abstractions"><a class="header" href="#part-2-safe-register-abstractions">Part 2: Safe Register Abstractions</a></h2>
+<h3 id="building-type-safe-register-access"><a class="header" href="#building-type-safe-register-access">Building Type-Safe Register Access</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use core::marker::PhantomData;
+
+/// Type-safe register wrapper
+pub struct Register&lt;T&gt; {
+    address: *mut T,
+}
+
+impl&lt;T&gt; Register&lt;T&gt; {
+    pub const fn new(address: usize) -&gt; Self {
+        Self {
+            address: address as *mut T,
+        }
+    }
+
+    pub fn read(&amp;self) -&gt; T
+    where
+        T: Copy,
+    {
+        unsafe { core::ptr::read_volatile(self.address) }
+    }
+
+    pub fn write(&amp;self, value: T) {
+        unsafe { core::ptr::write_volatile(self.address, value) }
+    }
+
+    pub fn modify&lt;F&gt;(&amp;self, f: F)
+    where
+        T: Copy,
+        F: FnOnce(T) -&gt; T,
+    {
+        self.write(f(self.read()));
+    }
+}
+
+// Usage
+const GPIO_OUT: Register&lt;u32&gt; = Register::new(0x4000_0004);
+
+fn toggle_led() {
+    GPIO_OUT.modify(|val| val ^ (1 &lt;&lt; 5));  // Toggle bit 5
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="field-access-with-bitfields"><a class="header" href="#field-access-with-bitfields">Field Access with Bitfields</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use modular_bitfield::prelude::*;
+
+#[bitfield]
+#[derive(Clone, Copy)]
+pub struct TimerControl {
+    pub enable: bool,      // Bit 0
+    pub interrupt: bool,   // Bit 1
+    pub mode: B2,         // Bits 2-3
+    #[skip] __: B4,       // Bits 4-7 reserved
+    pub prescaler: B8,    // Bits 8-15
+    pub reload: B16,      // Bits 16-31
+}
+
+pub struct TimerPeripheral {
+    control: Register&lt;TimerControl&gt;,
+    counter: Register&lt;u32&gt;,
+}
+
+impl TimerPeripheral {
+    pub fn configure(&amp;self, prescaler: u8, reload: u16) {
+        let mut ctrl = self.control.read();
+        ctrl.set_prescaler(prescaler);
+        ctrl.set_reload(reload);
+        ctrl.set_enable(true);
+        self.control.write(ctrl);
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="part-3-pac-generation-with-svd2rust"><a class="header" href="#part-3-pac-generation-with-svd2rust">Part 3: PAC Generation with svd2rust</a></h2>
+<h3 id="what-is-an-svd-file"><a class="header" href="#what-is-an-svd-file">What is an SVD File?</a></h3>
+<p>System View Description (SVD) files describe microcontroller peripherals in XML format. The <code>svd2rust</code> tool generates Rust code from these descriptions.</p>
+<h3 id="generated-pac-structure"><a class="header" href="#generated-pac-structure">Generated PAC Structure</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Generated by svd2rust from manufacturer SVD
+pub mod gpio {
+    use core::ptr;
+
+    pub struct RegisterBlock {
+        pub moder: MODER,     // Mode register
+        pub otyper: OTYPER,   // Output type register
+        pub ospeedr: OSPEEDR, // Output speed register
+        pub pupdr: PUPDR,     // Pull-up/pull-down register
+        pub idr: IDR,         // Input data register
+        pub odr: ODR,         // Output data register
+        pub bsrr: BSRR,       // Bit set/reset register
+    }
+
+    pub struct MODER {
+        register: vcell::VolatileCell&lt;u32&gt;,
+    }
+
+    impl MODER {
+        pub fn read(&amp;self) -&gt; u32 {
+            self.register.get()
+        }
+
+        pub fn write(&amp;self, value: u32) {
+            self.register.set(value)
+        }
+
+        pub fn modify&lt;F&gt;(&amp;self, f: F)
+        where
+            F: FnOnce(u32) -&gt; u32,
+        {
+            self.write(f(self.read()));
+        }
+    }
+}
+
+// Safe peripheral access
+pub struct Peripherals {
+    pub GPIO: gpio::RegisterBlock,
+}
+
+impl Peripherals {
+    pub fn take() -&gt; Option&lt;Self&gt; {
+        // Ensure single instance (singleton pattern)
+        static mut TAKEN: bool = false;
+
+        cortex_m::interrupt::free(|_| unsafe {
+            if TAKEN {
+                None
+            } else {
+                TAKEN = true;
+                Some(Peripherals {
+                    GPIO: gpio::RegisterBlock {
+                        // Initialize with hardware addresses
+                    },
+                })
+            }
+        })
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="using-a-pac"><a class="header" href="#using-a-pac">Using a PAC</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use esp32c3_pac::{Peripherals, GPIO};
+
+fn configure_gpio() {
+    let peripherals = Peripherals::take().unwrap();
+    let gpio = peripherals.GPIO;
+
+    // Configure pin as output
+    gpio.enable_w1ts.write(|w| w.bits(1 &lt;&lt; 5));
+    gpio.func5_out_sel_cfg.write(|w| w.out_sel().bits(0x80));
+
+    // Set pin high
+    gpio.out_w1ts.write(|w| w.bits(1 &lt;&lt; 5));
+}
+<span class="boring">}</span></code></pre></pre>
+<p><strong>Modern Alternatives (2024)</strong>: While svd2rust remains popular, newer tools like <code>chiptool</code> and <code>metapac</code> offer alternative approaches. Metapac provides additional metadata (memory layout, interrupt tables) alongside register access, useful for HAL frameworks like Embassy.</p>
+<h2 id="part-4-the-embedded-hal-traits"><a class="header" href="#part-4-the-embedded-hal-traits">Part 4: The Embedded HAL Traits</a></h2>
+<h3 id="core-traits"><a class="header" href="#core-traits">Core Traits</a></h3>
+<p>The embedded-hal provides standard traits for common peripherals:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use embedded_hal::digital::v2::{OutputPin, InputPin};
+use embedded_hal::blocking::delay::DelayMs;
+use embedded_hal::blocking::spi::{Write, Transfer};
+use embedded_hal::blocking::i2c::{Read, Write as I2cWrite};
+
+// GPIO traits
+pub trait OutputPin {
+    type Error;
+    fn set_low(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt;;
+    fn set_high(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt;;
+}
+
+pub trait InputPin {
+    type Error;
+    fn is_high(&amp;self) -&gt; Result&lt;bool, Self::Error&gt;;
+    fn is_low(&amp;self) -&gt; Result&lt;bool, Self::Error&gt;;
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="implementing-hal-traits"><a class="header" href="#implementing-hal-traits">Implementing HAL Traits</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use embedded_hal::digital::v2::OutputPin;
+use core::convert::Infallible;
+
+pub struct GpioPin {
+    pin_number: u8,
+    gpio_out: &amp;'static Register&lt;u32&gt;,
+}
+
+impl OutputPin for GpioPin {
+    type Error = Infallible;
+
+    fn set_high(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt; {
+        self.gpio_out.modify(|val| val | (1 &lt;&lt; self.pin_number));
+        Ok(())
+    }
+
+    fn set_low(&amp;mut self) -&gt; Result&lt;(), Self::Error&gt; {
+        self.gpio_out.modify(|val| val &amp; !(1 &lt;&lt; self.pin_number));
+        Ok(())
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="driver-portability"><a class="header" href="#driver-portability">Driver Portability</a></h3>
+<p>Write drivers that work with any HAL implementation:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use embedded_hal::blocking::delay::DelayMs;
+use embedded_hal::digital::v2::OutputPin;
+
+pub struct Led&lt;P: OutputPin&gt; {
+    pin: P,
+}
+
+impl&lt;P: OutputPin&gt; Led&lt;P&gt; {
+    pub fn new(pin: P) -&gt; Self {
+        Led { pin }
+    }
+
+    pub fn on(&amp;mut self) -&gt; Result&lt;(), P::Error&gt; {
+        self.pin.set_high()
+    }
+
+    pub fn off(&amp;mut self) -&gt; Result&lt;(), P::Error&gt; {
+        self.pin.set_low()
+    }
+
+    pub fn blink&lt;D: DelayMs&lt;u32&gt;&gt;(
+        &amp;mut self,
+        delay: &amp;mut D,
+        ms: u32,
+    ) -&gt; Result&lt;(), P::Error&gt; {
+        self.on()?;
+        delay.delay_ms(ms);
+        self.off()?;
+        delay.delay_ms(ms);
+        Ok(())
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="part-5-real-world-example---spi-display-driver"><a class="header" href="#part-5-real-world-example---spi-display-driver">Part 5: Real-World Example - SPI Display Driver</a></h2>
+<h3 id="portable-display-driver"><a class="header" href="#portable-display-driver">Portable Display Driver</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use embedded_hal::blocking::spi::Write;
+use embedded_hal::digital::v2::OutputPin;
+use embedded_hal::blocking::delay::DelayMs;
+
+pub struct ST7789&lt;SPI, DC, RST, DELAY&gt; {
+    spi: SPI,
+    dc: DC,
+    rst: RST,
+    delay: DELAY,
+}
+
+impl&lt;SPI, DC, RST, DELAY&gt; ST7789&lt;SPI, DC, RST, DELAY&gt;
+where
+    SPI: Write&lt;u8&gt;,
+    DC: OutputPin,
+    RST: OutputPin,
+    DELAY: DelayMs&lt;u32&gt;,
+{
+    pub fn new(spi: SPI, dc: DC, rst: RST, delay: DELAY) -&gt; Self {
+        ST7789 { spi, dc, rst, delay }
+    }
+
+    pub fn init(&amp;mut self) -&gt; Result&lt;(), Error&gt; {
+        // Reset sequence
+        self.rst.set_low().map_err(|_| Error::Gpio)?;
+        self.delay.delay_ms(10);
+        self.rst.set_high().map_err(|_| Error::Gpio)?;
+        self.delay.delay_ms(120);
+
+        // Initialization commands
+        self.command(0x01)?;  // Software reset
+        self.delay.delay_ms(150);
+
+        self.command(0x11)?;  // Sleep out
+        self.delay.delay_ms(10);
+
+        self.command(0x3A)?;  // Pixel format
+        self.data(&amp;[0x55])?;  // 16-bit color
+
+        self.command(0x29)?;  // Display on
+
+        Ok(())
+    }
+
+    fn command(&amp;mut self, cmd: u8) -&gt; Result&lt;(), Error&gt; {
+        self.dc.set_low().map_err(|_| Error::Gpio)?;
+        self.spi.write(&amp;[cmd]).map_err(|_| Error::Spi)?;
+        Ok(())
+    }
+
+    fn data(&amp;mut self, data: &amp;[u8]) -&gt; Result&lt;(), Error&gt; {
+        self.dc.set_high().map_err(|_| Error::Gpio)?;
+        self.spi.write(data).map_err(|_| Error::Spi)?;
+        Ok(())
+    }
+
+    pub fn draw_pixel(&amp;mut self, x: u16, y: u16, color: u16) -&gt; Result&lt;(), Error&gt; {
+        self.set_window(x, y, x, y)?;
+        self.command(0x2C)?;  // Memory write
+        self.data(&amp;color.to_be_bytes())?;
+        Ok(())
+    }
+
+    fn set_window(&amp;mut self, x0: u16, y0: u16, x1: u16, y1: u16) -&gt; Result&lt;(), Error&gt; {
+        self.command(0x2A)?;  // Column address set
+        self.data(&amp;x0.to_be_bytes())?;
+        self.data(&amp;x1.to_be_bytes())?;
+
+        self.command(0x2B)?;  // Row address set
+        self.data(&amp;y0.to_be_bytes())?;
+        self.data(&amp;y1.to_be_bytes())?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub enum Error {
+    Spi,
+    Gpio,
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="part-6-interrupt-handling"><a class="header" href="#part-6-interrupt-handling">Part 6: Interrupt Handling</a></h2>
+<h3 id="critical-sections-and-atomics"><a class="header" href="#critical-sections-and-atomics">Critical Sections and Atomics</a></h3>
+<pre><pre class="playground"><code class="language-rust">use cortex_m::interrupt;
+use core::cell::RefCell;
+use cortex_m::interrupt::Mutex;
+
+// Shared state between interrupt and main
+static COUNTER: Mutex&lt;RefCell&lt;u32&gt;&gt; = Mutex::new(RefCell::new(0));
+
+#[interrupt]
+fn TIMER0() {
+    interrupt::free(|cs| {
+        let mut counter = COUNTER.borrow(cs).borrow_mut();
+        *counter += 1;
+    });
+}
+
+fn main() {
+    // Access shared state safely
+    let count = interrupt::free(|cs| {
+        *COUNTER.borrow(cs).borrow()
+    });
+}</code></pre></pre>
+<h3 id="dma-with-volatile-buffers"><a class="header" href="#dma-with-volatile-buffers">DMA with Volatile Buffers</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use core::sync::atomic::{AtomicBool, Ordering};
+
+#[repr(C, align(4))]
+struct DmaBuffer {
+    data: [u8; 1024],
+}
+
+static mut DMA_BUFFER: DmaBuffer = DmaBuffer { data: [0; 1024] };
+static DMA_COMPLETE: AtomicBool = AtomicBool::new(false);
+
+fn start_dma_transfer() {
+    unsafe {
+        // Configure DMA to write to DMA_BUFFER
+        let buffer_addr = &amp;DMA_BUFFER as *const _ as u32;
+
+        // Set up DMA registers (hardware-specific)
+        const DMA_SRC: *mut u32 = 0x4002_0000 as *mut u32;
+        const DMA_DST: *mut u32 = 0x4002_0004 as *mut u32;
+        const DMA_LEN: *mut u32 = 0x4002_0008 as *mut u32;
+        const DMA_CTRL: *mut u32 = 0x4002_000C as *mut u32;
+
+        core::ptr::write_volatile(DMA_SRC, 0x2000_0000);  // Source address
+        core::ptr::write_volatile(DMA_DST, buffer_addr);   // Destination
+        core::ptr::write_volatile(DMA_LEN, 1024);          // Transfer length
+        core::ptr::write_volatile(DMA_CTRL, 0x01);         // Start transfer
+    }
+}
+
+#[interrupt]
+fn DMA_DONE() {
+    DMA_COMPLETE.store(true, Ordering::Release);
+}
+
+fn wait_for_dma() {
+    while !DMA_COMPLETE.load(Ordering::Acquire) {
+        cortex_m::asm::wfi();  // Wait for interrupt
+    }
+
+    // DMA complete - buffer contents are valid
+    unsafe {
+        // Must use volatile reads since DMA wrote the data
+        let first_byte = core::ptr::read_volatile(&amp;DMA_BUFFER.data[0]);
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="part-7-power-management"><a class="header" href="#part-7-power-management">Part 7: Power Management</a></h2>
+<h3 id="low-power-modes"><a class="header" href="#low-power-modes">Low-Power Modes</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub enum PowerMode {
+    Active,
+    Sleep,
+    DeepSleep,
+    Hibernate,
+}
+
+pub struct PowerController {
+    pwr_ctrl: &amp;'static Register&lt;u32&gt;,
+}
+
+impl PowerController {
+    pub fn set_mode(&amp;self, mode: PowerMode) {
+        let ctrl_value = match mode {
+            PowerMode::Active =&gt; 0x00,
+            PowerMode::Sleep =&gt; 0x01,
+            PowerMode::DeepSleep =&gt; 0x02,
+            PowerMode::Hibernate =&gt; 0x03,
+        };
+
+        self.pwr_ctrl.write(ctrl_value);
+
+        // Execute wait-for-interrupt to enter low-power mode
+        cortex_m::asm::wfi();
+    }
+
+    pub fn configure_wakeup_sources(&amp;self, sources: u32) {
+        const WAKEUP_EN: Register&lt;u32&gt; = Register::new(0x4000_1000);
+        WAKEUP_EN.write(sources);
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="part-8-real-hardware-example---esp32-c3"><a class="header" href="#part-8-real-hardware-example---esp32-c3">Part 8: Real Hardware Example - ESP32-C3</a></h2>
+<h3 id="complete-blinky-example"><a class="header" href="#complete-blinky-example">Complete Blinky Example</a></h3>
+<pre><pre class="playground"><code class="language-rust">#![no_std]
+#![no_main]
+
+use esp32c3_hal::{clock::ClockControl, pac::Peripherals, prelude::*, timer::TimerGroup, Rtc};
+use esp_backtrace as _;
+use riscv_rt::entry;
+
+#[entry]
+fn main() -&gt; ! {
+    let peripherals = Peripherals::take().unwrap();
+    let system = peripherals.SYSTEM.split();
+    let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
+
+    let mut rtc = Rtc::new(peripherals.RTC_CNTL);
+    let timer_group0 = TimerGroup::new(peripherals.TIMG0, &amp;clocks);
+    let mut wdt0 = timer_group0.wdt;
+    let timer_group1 = TimerGroup::new(peripherals.TIMG1, &amp;clocks);
+    let mut wdt1 = timer_group1.wdt;
+
+    // Disable watchdogs
+    rtc.rwdt.disable();
+    wdt0.disable();
+    wdt1.disable();
+
+    // Configure GPIO
+    let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
+    let mut led = io.pins.gpio7.into_push_pull_output();
+
+    // Main loop
+    loop {
+        led.toggle().unwrap();
+        delay(500_000);
+    }
+}
+
+fn delay(cycles: u32) {
+    for _ in 0..cycles {
+        unsafe { riscv::asm::nop() };
+    }
+}</code></pre></pre>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<ol>
+<li><strong>Always Use Volatile</strong>: Hardware registers require volatile access</li>
+<li><strong>Type Safety</strong>: Use strong types to prevent register misuse</li>
+<li><strong>Singleton Pattern</strong>: Ensure single ownership of peripherals</li>
+<li><strong>Critical Sections</strong>: Protect shared state in interrupts</li>
+<li><strong>Zero-Cost Abstractions</strong>: HAL traits compile to direct register access</li>
+<li><strong>Test on Hardware</strong>: Emulators may not match real hardware behavior</li>
+</ol>
+<h2 id="common-pitfalls"><a class="header" href="#common-pitfalls">Common Pitfalls</a></h2>
+<ol>
+<li><strong>Forgetting Volatile</strong>: Regular access leads to optimization bugs</li>
+<li><strong>Race Conditions</strong>: Unprotected access from interrupts</li>
+<li><strong>Alignment Issues</strong>: DMA buffers need proper alignment</li>
+<li><strong>Clock Configuration</strong>: Wrong clock setup causes timing issues</li>
+<li><strong>Power States</strong>: Peripherals may need re-initialization after sleep</li>
+</ol>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>Embedded HAL in Rust provides:</p>
+<ul>
+<li><strong>Volatile access patterns</strong> for hardware registers</li>
+<li><strong>Type-safe abstractions</strong> over raw memory access</li>
+<li><strong>PAC generation</strong> from SVD files</li>
+<li><strong>Portable drivers</strong> via HAL traits</li>
+<li><strong>Memory safety</strong> in embedded contexts</li>
+</ul>
+<p>The embedded-hal ecosystem enables writing portable, reusable drivers while maintaining the performance of direct hardware access.</p>
+<h2 id="additional-resources"><a class="header" href="#additional-resources">Additional Resources</a></h2>
+<ul>
+<li><a href="https://docs.rust-embedded.org/book/">The Embedded Rust Book</a></li>
+<li><a href="https://docs.rs/embedded-hal/">embedded-hal Documentation</a></li>
+<li><a href="https://github.com/rust-embedded/svd2rust">svd2rust</a></li>
+<li><a href="https://github.com/rust-embedded/awesome-embedded-rust">awesome-embedded-rust</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../transfer/22_unsafe_ffi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../transfer/24_async_concurrency.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../transfer/22_unsafe_ffi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../transfer/24_async_concurrency.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

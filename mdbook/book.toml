@@ -1,0 +1,25 @@
+[book]
+title = "Rust Course 2025"
+description = "Interactive Rust programming course built with mdBook"
+authors = ["Roland Brand"]
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+curly-quotes = true
+mathjax-support = false
+copy-fonts = true
+google-analytics = ""
+additional-css = []
+additional-js = []
+no-section-label = false
+git-repository-url = "https://github.com/bar9/rust-course-2025-11-20"
+edit-url-template = "https://github.com/bar9/rus    t-course-2025-11-20/edit/main/mdbook/{path}"
+site-url = "/rust-course-2025-11-20/"
+cname = ""
+input-404 = ""

@@ -1,0 +1,846 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Integration &amp; Deployment - Rust Course 2025</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Interactive Rust programming course built with mdBook">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Rust Course 2025</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/bar9/rust-course-2025-11-20" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/bar9/rus    t-course-2025-11-20/edit/main/mdbook/src/day3/17_integration_deployment.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-17-integration--deployment"><a class="header" href="#chapter-17-integration--deployment">Chapter 17: Integration &amp; Deployment</a></h1>
+<h2 id="learning-objectives"><a class="header" href="#learning-objectives">Learning Objectives</a></h2>
+<p>This chapter covers:</p>
+<ul>
+<li>Integrate all components into a complete temperature monitoring system</li>
+<li>Configure build optimization for embedded deployment</li>
+<li>Flash and debug applications on ESP32-C3 hardware</li>
+<li>Implement basic error handling and recovery</li>
+</ul>
+<h2 id="task-build-production-ready-temperature-monitor"><a class="header" href="#task-build-production-ready-temperature-monitor">Task: Build Production-Ready Temperature Monitor</a></h2>
+<p>Over chapters 13-16, we’ve built individual components. Now it’s time to integrate everything into a robust, production-ready system.</p>
+<p><strong>Your Mission:</strong></p>
+<ol>
+<li><strong>Integrate all components</strong> into a single working system</li>
+<li><strong>Add error handling</strong> and recovery mechanisms</li>
+<li><strong>Optimize build configuration</strong> for production deployment</li>
+<li><strong>Add deployment scripts</strong> for easy flashing and monitoring</li>
+<li><strong>Create production monitoring</strong> with structured output</li>
+</ol>
+<p><strong>What We’re Combining:</strong></p>
+<ul>
+<li><strong>Chapter 13</strong>: Hardware interaction with ESP32-C3 and temperature sensor</li>
+<li><strong>Chapter 14</strong>: Embedded data structures with no_std foundations</li>
+<li><strong>Chapter 15</strong>: Comprehensive testing strategy for embedded code</li>
+<li><strong>Chapter 16</strong>: JSON communication and structured data protocols</li>
+</ul>
+<p><strong>Production Requirements:</strong></p>
+<ul>
+<li>Graceful error handling (no panics in production)</li>
+<li>Optimized binary size and performance</li>
+<li>Reliable sensor reading with fallback</li>
+<li>Structured logging for monitoring</li>
+<li>Easy deployment and debugging</li>
+</ul>
+<h3 id="simplified-system-architecture"><a class="header" href="#simplified-system-architecture">Simplified System Architecture</a></h3>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                   ESP32-C3 System                      │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │              Main Loop                          │   │
+│  │                                                 │   │
+│  │  1. Read Temperature                            │   │
+│  │  2. Store in Buffer                             │   │
+│  │  3. Update LED Status                           │   │
+│  │  4. Output JSON (every 5 readings)             │   │
+│  │  5. Delay 1 second                              │   │
+│  │  6. Repeat                                      │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │Temperature  │  │   LED       │  │    JSON     │     │
+│  │Buffer       │  │ Controller  │  │  Output     │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │              USB Serial Output                  │   │
+│  │  Status Messages | Readings | Statistics        │   │
+│  └─────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<h2 id="complete-temperature-monitor-implementation"><a class="header" href="#complete-temperature-monitor-implementation">Complete Temperature Monitor Implementation</a></h2>
+<h3 id="project-setup"><a class="header" href="#project-setup">Project Setup</a></h3>
+<p>First, let’s create the complete <code>Cargo.toml</code>:</p>
+<pre><code class="language-toml">[package]
+name = "chapter17_integration"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+
+[[bin]]
+name = "chapter17_integration"
+path = "./src/bin/main.rs"
+
+[lib]
+name = "chapter17_integration"
+path = "src/lib.rs"
+
+[dependencies]
+# Only include ESP dependencies when not testing
+esp-hal = { version = "1.0.0", features = ["esp32c3", "unstable"], optional = true }
+esp-bootloader-esp-idf = { version = "0.4.0", features = ["esp32c3"], optional = true }
+esp-println = { version = "0.16", features = ["esp32c3"], optional = true }
+
+# Core dependencies
+heapless = "0.8"
+
+# Serialization
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde-json-core = "0.6"
+
+[features]
+default = ["hardware"]
+hardware = ["esp-hal", "esp-println", "esp-bootloader-esp-idf"]
+simulation = []     # Use mock sensors instead of hardware
+verbose = []        # Enable detailed debug logging
+telemetry = []      # Extended monitoring capabilities
+
+[profile.dev]
+# Rust debug is too slow for embedded
+opt-level = "s"
+
+[profile.release]
+# Production optimizations
+codegen-units = 1     # LLVM can perform better optimizations using a single thread
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false
+</code></pre>
+<h3 id="main-system-implementation"><a class="header" href="#main-system-implementation">Main System Implementation</a></h3>
+<pre><pre class="playground"><code class="language-rust">// src/bin/main.rs - Production-ready integrated system
+#![no_std]
+#![no_main]
+#![deny(
+    clippy::mem_forget,
+    reason = "mem::forget is generally not safe to do with esp_hal types"
+)]
+
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::main;
+use esp_hal::time::{Duration, Instant};
+use esp_hal::tsens::{Config, TemperatureSensor};
+
+// Use the integrated system components from previous chapters
+use chapter17_integration::{Temperature, TemperatureBuffer, Command, TemperatureComm};
+
+// Production system configuration
+const BUFFER_SIZE: usize = 32;
+const SAMPLE_RATE_MS: u32 = 1000;
+const JSON_OUTPUT_INTERVAL: u32 = 5;
+const HEALTH_REPORT_INTERVAL: u32 = 20;
+
+// System state tracking for production monitoring
+struct SystemState {
+    reading_count: u32,
+    system_time_ms: u32,
+    overheating_count: u32,
+    sensor_error_count: u32,
+    last_temp: f32,
+}
+
+impl SystemState {
+    fn new() -&gt; Self {
+        Self {
+            reading_count: 0,
+            system_time_ms: 0,
+            overheating_count: 0,
+            sensor_error_count: 0,
+            last_temp: 0.0,
+        }
+    }
+
+    fn advance_time(&amp;mut self) {
+        self.reading_count += 1;
+        self.system_time_ms += SAMPLE_RATE_MS;
+    }
+}
+
+#[panic_handler]
+fn panic(_: &amp;core::panic::PanicInfo) -&gt; ! {
+    // In production, we want graceful error handling
+    esp_println::println!("SYSTEM_ERROR: Panic occurred, attempting recovery...");
+    loop {}
+}
+
+esp_bootloader_esp_idf::esp_app_desc!();
+
+#[main]
+fn main() -&gt; ! {
+    // Initialize hardware with error handling
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
+
+    // Initialize components
+    let mut led = Output::new(peripherals.GPIO8, Level::Low, OutputConfig::default());
+    let temp_sensor = TemperatureSensor::new(peripherals.TSENS, Config::default()).unwrap();
+    let mut temp_buffer = TemperatureBuffer::&lt;BUFFER_SIZE&gt;::new();
+    let mut comm = TemperatureComm::new();
+    let mut state = SystemState::new();
+
+    // System startup
+    esp_println::println!("🚀 ESP32-C3 Production Temperature Monitor v1.0");
+    esp_println::println!("📊 Buffer: {} readings | Sample rate: {}ms", BUFFER_SIZE, SAMPLE_RATE_MS);
+    esp_println::println!("📡 JSON output every {} readings", JSON_OUTPUT_INTERVAL);
+    esp_println::println!("🏥 Health reports every {} readings", HEALTH_REPORT_INTERVAL);
+    esp_println::println!("✅ System initialized successfully");
+    esp_println::println!();
+
+    comm.init(0);
+
+    // Main production loop with error handling
+    loop {
+        // Read temperature with error handling
+        let esp_temperature = temp_sensor.get_temperature();
+        let temp_celsius = esp_temperature.to_celsius();
+        let temperature = Temperature::from_celsius(temp_celsius);
+
+        // Update system state
+        state.last_temp = temp_celsius;
+        temp_buffer.push(temperature);
+        state.advance_time();
+
+        // LED status indication
+        if temperature.is_overheating() {
+            state.overheating_count += 1;
+            // Rapid triple blink for overheating
+            for _ in 0..3 {
+                led.set_high();
+                let blink_start = Instant::now();
+                while blink_start.elapsed() &lt; Duration::from_millis(100) {}
+                led.set_low();
+                let blink_start = Instant::now();
+                while blink_start.elapsed() &lt; Duration::from_millis(100) {}
+            }
+        } else if !temperature.is_normal_range() {
+            // Double blink for abnormal range
+            led.set_high();
+            let blink_start = Instant::now();
+            while blink_start.elapsed() &lt; Duration::from_millis(150) {}
+            led.set_low();
+            let blink_start = Instant::now();
+            while blink_start.elapsed() &lt; Duration::from_millis(100) {}
+            led.set_high();
+            let blink_start = Instant::now();
+            while blink_start.elapsed() &lt; Duration::from_millis(150) {}
+            led.set_low();
+        } else {
+            // Normal single blink
+            led.set_high();
+            let blink_start = Instant::now();
+            while blink_start.elapsed() &lt; Duration::from_millis(200) {}
+            led.set_low();
+        }
+
+        // JSON output every N readings
+        if state.reading_count % JSON_OUTPUT_INTERVAL == 0 {
+            let reading_json = comm.latest_reading_json(&amp;temp_buffer, state.system_time_ms);
+            esp_println::println!("READING: {}", reading_json);
+
+            let stats_json = comm.stats_json(&amp;temp_buffer, state.system_time_ms);
+            esp_println::println!("STATS: {}", stats_json);
+        }
+
+        // Health report every N readings
+        if state.reading_count % HEALTH_REPORT_INTERVAL == 0 {
+            esp_println::println!("HEALTH: readings={} overheating={} errors={} uptime={}ms",
+                state.reading_count,
+                state.overheating_count,
+                state.sensor_error_count,
+                state.system_time_ms
+            );
+        }
+
+        // Wait for next sample
+        let wait_start = Instant::now();
+        while wait_start.elapsed() &lt; Duration::from_millis(SAMPLE_RATE_MS as u64) {}
+    }
+}</code></pre></pre>
+<h2 id="production-deployment"><a class="header" href="#production-deployment">Production Deployment</a></h2>
+<p>Build and deploy the production system:</p>
+<pre><code class="language-bash"># Run tests
+cargo test
+
+# Build and deploy to ESP32-C3 (recommended)
+cargo run --release
+
+# Alternative: Build then flash separately
+cargo build --release --target riscv32imc-unknown-none-elf
+cargo espflash flash target/riscv32imc-unknown-none-elf/release/chapter17_integration
+
+# Monitor production logs
+cargo espflash monitor
+</code></pre>
+<h2 id="understanding-cargo-features"><a class="header" href="#understanding-cargo-features">Understanding Cargo Features</a></h2>
+<p>Cargo features are a powerful mechanism for conditional compilation in Rust projects. In embedded systems, they’re especially useful for managing different build configurations.</p>
+<h3 id="what-are-cargo-features"><a class="header" href="#what-are-cargo-features">What Are Cargo Features?</a></h3>
+<p>Features allow you to:</p>
+<ul>
+<li>Enable/disable functionality at compile time</li>
+<li>Support multiple hardware platforms from one codebase</li>
+<li>Create development vs production builds</li>
+<li>Reduce binary size by excluding unused code</li>
+</ul>
+<h3 id="our-feature-configuration"><a class="header" href="#our-feature-configuration">Our Feature Configuration</a></h3>
+<pre><code class="language-toml">[features]
+default = ["hardware"]              # Default features enabled
+hardware = ["esp-hal", "esp-println", "esp-bootloader-esp-idf"]  # Real ESP32-C3 hardware
+simulation = []                     # Mock sensors for testing
+verbose = []                        # Detailed debug logging
+telemetry = []                      # Extended monitoring capabilities
+</code></pre>
+<h3 id="conditional-compilation"><a class="header" href="#conditional-compilation">Conditional Compilation</a></h3>
+<p>Use <code>#[cfg(feature = "...")]</code> to conditionally compile code:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Different sensor implementations based on features
+#[cfg(feature = "hardware")]
+use esp_hal::tsens::{Config, TemperatureSensor};
+
+#[cfg(feature = "simulation")]
+mod mock_sensor {
+    pub struct MockTemperatureSensor {
+        temperature: f32,
+    }
+
+    impl MockTemperatureSensor {
+        pub fn new() -&gt; Self {
+            Self { temperature: 25.0 }
+        }
+
+        pub fn get_temperature(&amp;mut self) -&gt; f32 {
+            // Simulate varying temperature
+            self.temperature += (rand() % 5) as f32 - 2.0;
+            self.temperature
+        }
+    }
+}
+
+// Optional verbose logging
+#[cfg(feature = "verbose")]
+macro_rules! debug_log {
+    ($($arg:tt)*) =&gt; {
+        esp_println::println!("DEBUG: {}", format!($($arg)*));
+    };
+}
+
+#[cfg(not(feature = "verbose"))]
+macro_rules! debug_log {
+    ($($arg:tt)*) =&gt; {};
+}
+
+// Extended telemetry
+#[cfg(feature = "telemetry")]
+fn output_telemetry_data(state: &amp;SystemState) {
+    esp_println::println!("TELEMETRY: {{");
+    esp_println::println!("  \"uptime_ms\": {},", state.system_time_ms);
+    esp_println::println!("  \"free_heap\": {},", get_free_heap());
+    esp_println::println!("  \"cpu_usage\": {},", get_cpu_usage());
+    esp_println::println!("}}");
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="building-with-different-features"><a class="header" href="#building-with-different-features">Building with Different Features</a></h3>
+<pre><code class="language-bash"># Default build (hardware features enabled)
+cargo build --release
+
+# Build for simulation (no hardware needed)
+cargo build --features simulation
+
+# Build with verbose logging
+cargo build --features "hardware,verbose"
+
+# Build with all monitoring features
+cargo build --features "hardware,verbose,telemetry"
+
+# Build with only simulation and telemetry
+cargo build --no-default-features --features "simulation,telemetry"
+</code></pre>
+<h3 id="why-features-matter-in-embedded"><a class="header" href="#why-features-matter-in-embedded">Why Features Matter in Embedded</a></h3>
+<ol>
+<li><strong>Binary Size</strong>: Exclude unused features to reduce Flash usage</li>
+<li><strong>Testing</strong>: Run tests without hardware using simulation features</li>
+<li><strong>Development</strong>: Enable verbose logging during development</li>
+<li><strong>Production</strong>: Strip debug features for production builds</li>
+<li><strong>Portability</strong>: Support multiple hardware platforms</li>
+</ol>
+<h3 id="real-world-examples"><a class="header" href="#real-world-examples">Real-World Examples</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Production vs Development builds
+#[cfg(feature = "verbose")]
+const LOG_LEVEL: LogLevel = LogLevel::Debug;
+
+#[cfg(not(feature = "verbose"))]
+const LOG_LEVEL: LogLevel = LogLevel::Error;
+
+// Hardware-specific implementations
+#[cfg(feature = "hardware")]
+fn read_temperature() -&gt; Result&lt;f32, SensorError&gt; {
+    let sensor = TemperatureSensor::new(/* ... */)?;
+    Ok(sensor.get_temperature().to_celsius())
+}
+
+#[cfg(feature = "simulation")]
+fn read_temperature() -&gt; Result&lt;f32, SensorError&gt; {
+    // Return predictable test data
+    Ok(23.5 + (system_time() % 10) as f32)
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="exercise-production-system-integration"><a class="header" href="#exercise-production-system-integration">Exercise: Production System Integration</a></h2>
+<p>Integrate all previous components into a production-ready temperature monitoring system.</p>
+<h3 id="requirements"><a class="header" href="#requirements">Requirements</a></h3>
+<ol>
+<li><strong>System Integration</strong>: Combine hardware, data structures, testing, and communication</li>
+<li><strong>Cargo Features</strong>: Implement conditional compilation for different build configurations</li>
+<li><strong>Error Recovery</strong>: Handle sensor failures and system errors gracefully</li>
+<li><strong>Production Monitoring</strong>: Add health reporting and system metrics</li>
+<li><strong>Build Optimization</strong>: Configure release builds for optimal performance</li>
+<li><strong>Deployment Ready</strong>: Create scripts for easy flashing and monitoring</li>
+</ol>
+<h3 id="starting-structure"><a class="header" href="#starting-structure">Starting Structure</a></h3>
+<p>Based on previous chapters, create the integrated system:</p>
+<pre><pre class="playground"><code class="language-rust">// src/bin/main.rs - Production system main file
+#![no_std]
+#![no_main]
+
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Level, Output, OutputConfig};
+use esp_hal::main;
+
+// Conditional imports based on features
+#[cfg(feature = "hardware")]
+use esp_hal::tsens::{Config, TemperatureSensor};
+
+// Import from your integrated library
+use chapter17_integration::{Temperature, TemperatureBuffer, TemperatureComm};
+
+// Debug logging macro (only compiled with verbose feature)
+#[cfg(feature = "verbose")]
+macro_rules! debug_log {
+    ($($arg:tt)*) =&gt; {
+        esp_println::println!("DEBUG: {}", format_args!($($arg)*));
+    };
+}
+
+#[cfg(not(feature = "verbose"))]
+macro_rules! debug_log {
+    ($($arg:tt)*) =&gt; {};
+}
+
+// Production configuration
+const BUFFER_SIZE: usize = 32;
+const SAMPLE_RATE_MS: u32 = 1000;
+const HEALTH_REPORT_INTERVAL: u32 = 20;
+
+// System state tracking
+struct SystemState {
+    reading_count: u32,
+    system_time_ms: u32,
+    overheating_count: u32,
+    sensor_error_count: u32,
+    // TODO: Add more state fields
+}
+
+#[panic_handler]
+fn panic(info: &amp;core::panic::PanicInfo) -&gt; ! {
+    // TODO: Implement production panic handler with logging
+    loop {}
+}
+
+#[main]
+fn main() -&gt; ! {
+    // TODO: Initialize all components with feature-based configuration
+    // TODO: Initialize sensor based on hardware vs simulation features
+    // TODO: Add error handling for sensor initialization
+    // TODO: Implement main monitoring loop with health checks
+    // TODO: Add conditional telemetry and verbose logging
+}
+
+// TODO: Implement helper functions with feature gates:
+// - read_temperature_safe() with hardware/simulation branches
+// - update_led_status() with enhanced patterns
+// - output_health_report() for system monitoring
+// - handle_error_conditions() for error recovery
+// - output_telemetry_data() (telemetry feature only)
+// - debug logging (verbose feature only)</code></pre></pre>
+<h3 id="implementation-tasks"><a class="header" href="#implementation-tasks">Implementation Tasks</a></h3>
+<ol>
+<li>
+<p><strong>Cargo Features Setup</strong>:</p>
+<ul>
+<li>Implement conditional sensor initialization (hardware vs simulation)</li>
+<li>Add debug logging macros with verbose feature</li>
+<li>Create feature-gated telemetry functions</li>
+</ul>
+</li>
+<li>
+<p><strong>System Integration</strong>:</p>
+<ul>
+<li>Initialize all hardware components with error handling</li>
+<li>Create SystemState struct to track system health</li>
+<li>Set up production configuration constants</li>
+</ul>
+</li>
+<li>
+<p><strong>Error Recovery</strong>:</p>
+<ul>
+<li>Implement safe temperature reading with fallback</li>
+<li>Add sensor error counting and recovery</li>
+<li>Create production panic handler with logging</li>
+</ul>
+</li>
+<li>
+<p><strong>Health Monitoring</strong>:</p>
+<ul>
+<li>Add system state tracking (uptime, errors, performance)</li>
+<li>Implement health report generation</li>
+<li>Create status indicators and LED patterns</li>
+</ul>
+</li>
+<li>
+<p><strong>Production Features</strong>:</p>
+<ul>
+<li>Configure optimized Cargo.toml profile</li>
+<li>Add JSON health reporting</li>
+<li>Test complete system integration with different features</li>
+</ul>
+</li>
+</ol>
+<h3 id="success-criteria"><a class="header" href="#success-criteria">Success Criteria</a></h3>
+<ul>
+<li><input disabled="" type="checkbox"/>
+System integrates all previous chapter components</li>
+<li><input disabled="" type="checkbox"/>
+Cargo features work correctly (hardware, simulation, verbose, telemetry)</li>
+<li><input disabled="" type="checkbox"/>
+Handles sensor failures without crashing</li>
+<li><input disabled="" type="checkbox"/>
+Provides health monitoring and error reporting</li>
+<li><input disabled="" type="checkbox"/>
+Optimized build configuration for production</li>
+<li><input disabled="" type="checkbox"/>
+Complete JSON communication system working</li>
+<li><input disabled="" type="checkbox"/>
+LED status indicates system health</li>
+<li><input disabled="" type="checkbox"/>
+Recovery from common error conditions</li>
+<li><input disabled="" type="checkbox"/>
+Different features produce different build outputs</li>
+</ul>
+<h3 id="expected-health-report-output"><a class="header" href="#expected-health-report-output">Expected Health Report Output</a></h3>
+<pre><code>🌡️ ESP32-C3 Complete Temperature Monitor System
+=================================================
+🔧 Hardware: ESP32-C3 @ max frequency
+📊 Buffer capacity: 32 readings
+⏱️  Sample rate: 1 Hz
+🌡️ Overheating threshold: 52.0°C
+📡 JSON output every 5 readings
+💓 Health reports every 20 readings
+🚀 System starting...
+
+🟢📊 #001 | 24.3°C | Buffer: 1/32
+🟢📊 #002 | 24.1°C | Buffer: 2/32
+...
+🟢📊 #020 | 24.8°C | Buffer: 20/32
+
+💓 HEALTH REPORT
+  Uptime: 20s | Readings: 20
+  Buffer: 62% (20/32) | Memory: 128 bytes
+  Errors: 0 sensor, 0 overheating events
+  Current temp: 24.8°C
+</code></pre>
+<h3 id="build-optimization"><a class="header" href="#build-optimization">Build Optimization</a></h3>
+<p>Update your <code>Cargo.toml</code> with production settings:</p>
+<pre><code class="language-toml">[profile.release]
+codegen-units = 1         # Better optimization
+debug = false            # Remove debug info
+debug-assertions = false # Remove runtime checks
+incremental = false      # Full rebuild for optimization
+lto = 'fat'             # Link-time optimization
+opt-level = 's'         # Optimize for size
+overflow-checks = false # Remove overflow checks
+panic = 'abort'         # Smaller panic handler
+strip = true            # Remove symbols
+</code></pre>
+<h3 id="deployment-script"><a class="header" href="#deployment-script">Deployment Script</a></h3>
+<p>Create <code>deploy.sh</code>:</p>
+<pre><code class="language-bash">#!/bin/bash
+echo "🚀 Deploying Production Temperature Monitor..."
+cargo build --release --features embedded
+cargo espflash flash --monitor target/riscv32imc-unknown-none-elf/release/chapter17_integration
+</code></pre>
+<h3 id="extension-challenges"><a class="header" href="#extension-challenges">Extension Challenges</a></h3>
+<ol>
+<li><strong>Watchdog Timer</strong>: Add hardware watchdog for system recovery</li>
+<li><strong>Flash Storage</strong>: Persist configuration across resets</li>
+<li><strong>Over-the-Air Updates</strong>: Implement firmware update capability</li>
+<li><strong>Network Integration</strong>: Connect to WiFi for remote monitoring</li>
+<li><strong>Power Management</strong>: Add sleep modes for battery operation</li>
+</ol>
+<h3 id="error-recovery-strategies"><a class="header" href="#error-recovery-strategies">Error Recovery Strategies</a></h3>
+<ul>
+<li><strong>Sensor Failure</strong>: Use last known good value, count errors</li>
+<li><strong>Buffer Overflow</strong>: Circular buffer handles automatically</li>
+<li><strong>Communication Error</strong>: Continue operation, log errors</li>
+<li><strong>Memory Issues</strong>: Monitor stack usage, implement safeguards</li>
+<li><strong>Timing Drift</strong>: Use hardware timers for precision</li>
+</ul>
+<h3 id="testing-production-system"><a class="header" href="#testing-production-system">Testing Production System</a></h3>
+<pre><code class="language-bash"># Run comprehensive tests
+./test.sh
+
+# Test different feature combinations
+cargo check --features hardware
+cargo check --features simulation
+cargo check --features "hardware,verbose"
+cargo check --features "hardware,telemetry"
+cargo check --features "simulation,verbose,telemetry"
+
+# Check build sizes with different features
+cargo size --release                           # Default (hardware)
+cargo size --release --features simulation     # Simulation only
+cargo size --release --features "hardware,verbose,telemetry"  # Full featured
+
+# Flash and monitor
+chmod +x deploy.sh
+./deploy.sh
+</code></pre>
+<h2 id="production-system-features"><a class="header" href="#production-system-features">Production System Features</a></h2>
+<p>✅ <strong>Error Handling</strong>: Graceful panic handling with recovery attempts
+✅ <strong>Health Monitoring</strong>: System metrics and error counting
+✅ <strong>Structured Logging</strong>: JSON output for monitoring dashboards
+✅ <strong>Performance Optimization</strong>: Optimized builds for production deployment
+✅ <strong>State Tracking</strong>: Comprehensive system state monitoring
+✅ <strong>Production Configuration</strong>: Configurable intervals and thresholds</p>
+<p><strong>Next</strong>: In Chapter 18, we’ll explore advanced features and extensions to make the system even more capable.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../day3/16_data_communication.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../day3/18_complete_system.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../day3/16_data_communication.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../day3/18_complete_system.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

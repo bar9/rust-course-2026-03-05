@@ -1,0 +1,380 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Course Introduction &amp; Setup - Rust Course 2025</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Interactive Rust programming course built with mdBook">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Rust Course 2025</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/bar9/rust-course-2025-11-20" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/bar9/rus    t-course-2025-11-20/edit/main/mdbook/src/day1/01_setup.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-1-course-introduction--setup"><a class="header" href="#chapter-1-course-introduction--setup">Chapter 1: Course Introduction &amp; Setup</a></h1>
+<h2 id="development-environment-setup"><a class="header" href="#development-environment-setup">Development Environment Setup</a></h2>
+<p>Let’s get your Rust development environment ready. Rust’s tooling is excellent - you’ll find it more unified than C++ and more performant than .NET.</p>
+<h3 id="installing-rust"><a class="header" href="#installing-rust">Installing Rust</a></h3>
+<p>The recommended way to install Rust is through <code>rustup</code>, Rust’s official toolchain manager.</p>
+<h4 id="on-unix-like-systems-linuxmacos"><a class="header" href="#on-unix-like-systems-linuxmacos">On Unix-like systems (Linux/macOS):</a></h4>
+<pre><code class="language-bash">curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+</code></pre>
+<h4 id="on-windows"><a class="header" href="#on-windows">On Windows:</a></h4>
+<p>Download and run the installer from <a href="https://rustup.rs/">rustup.rs</a></p>
+<p>After installation, verify:</p>
+<pre><code class="language-bash">rustc --version
+cargo --version
+</code></pre>
+<h3 id="understanding-the-rust-toolchain"><a class="header" href="#understanding-the-rust-toolchain">Understanding the Rust Toolchain</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Tool</th><th>Purpose</th><th>C++ Equivalent</th><th>.NET Equivalent</th></tr></thead><tbody>
+<tr><td><code>rustc</code></td><td>Compiler</td><td><code>g++</code>, <code>clang++</code></td><td><code>csc</code>, <code>dotnet build</code></td></tr>
+<tr><td><code>cargo</code></td><td>Build system &amp; package manager</td><td><code>cmake</code> + <code>conan</code>/<code>vcpkg</code></td><td><code>dotnet</code> CLI + NuGet</td></tr>
+<tr><td><code>rustup</code></td><td>Toolchain manager</td><td>-</td><td>.NET SDK manager</td></tr>
+<tr><td><code>clippy</code></td><td>Linter</td><td><code>clang-tidy</code></td><td>Code analyzers</td></tr>
+<tr><td><code>rustfmt</code></td><td>Formatter</td><td><code>clang-format</code></td><td><code>dotnet format</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="your-first-rust-project"><a class="header" href="#your-first-rust-project">Your First Rust Project</a></h3>
+<p>Let’s create a Hello World project to verify everything works:</p>
+<pre><code class="language-bash">cargo new hello_rust
+cd hello_rust
+</code></pre>
+<p>This creates:</p>
+<pre><code>hello_rust/
+├── Cargo.toml    # Like CMakeLists.txt or .csproj
+└── src/
+    └── main.rs   # Entry point
+</code></pre>
+<p>Look at <code>src/main.rs</code>:</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    println!("Hello, world!");
+}</code></pre></pre>
+<p>Run it:</p>
+<pre><code class="language-bash">cargo run
+</code></pre>
+<h3 id="understanding-cargo"><a class="header" href="#understanding-cargo">Understanding Cargo</a></h3>
+<p>Cargo is Rust’s build system and package manager. Coming from C++ or .NET, you’ll love its simplicity.</p>
+<h4 id="key-cargo-commands"><a class="header" href="#key-cargo-commands">Key Cargo Commands</a></h4>
+<div class="table-wrapper"><table><thead><tr><th>Command</th><th>Purpose</th><th>Similar to</th></tr></thead><tbody>
+<tr><td><code>cargo new</code></td><td>Create new project</td><td><code>dotnet new</code>, <code>cmake init</code></td></tr>
+<tr><td><code>cargo build</code></td><td>Compile project</td><td><code>make</code>, <code>dotnet build</code></td></tr>
+<tr><td><code>cargo run</code></td><td>Build &amp; run</td><td><code>./a.out</code>, <code>dotnet run</code></td></tr>
+<tr><td><code>cargo test</code></td><td>Run tests</td><td><code>ctest</code>, <code>dotnet test</code></td></tr>
+<tr><td><code>cargo doc</code></td><td>Generate documentation</td><td><code>doxygen</code></td></tr>
+<tr><td><code>cargo check</code></td><td>Fast syntax/type check</td><td>Incremental compilation</td></tr>
+</tbody></table>
+</div>
+<h4 id="debug-vs-release-builds"><a class="header" href="#debug-vs-release-builds">Debug vs Release Builds</a></h4>
+<pre><code class="language-bash">cargo build          # Debug build (./target/debug/)
+cargo build --release # Optimized build (./target/release/)
+</code></pre>
+<p><strong>Performance difference is significant!</strong> Debug builds include:</p>
+<ul>
+<li>Overflow checks</li>
+<li>Debug symbols</li>
+<li>No optimizations</li>
+</ul>
+<h3 id="project-structure-best-practices"><a class="header" href="#project-structure-best-practices">Project Structure Best Practices</a></h3>
+<p>A typical Rust project structure:</p>
+<pre><code>my_project/
+├── Cargo.toml           # Project manifest
+├── Cargo.lock          # Dependency lock file (like package-lock.json)
+├── src/
+│   ├── main.rs         # Binary entry point
+│   ├── lib.rs          # Library entry point
+│   └── module.rs       # Additional modules
+├── tests/              # Integration tests
+│   └── integration_test.rs
+├── benches/            # Benchmarks
+│   └── benchmark.rs
+├── examples/           # Example programs
+│   └── example.rs
+└── target/             # Build artifacts (gitignored)
+</code></pre>
+<h3 id="comparing-with-cnet"><a class="header" href="#comparing-with-cnet">Comparing with C++/.NET</a></h3>
+<h4 id="c-developers"><a class="header" href="#c-developers">C++ Developers</a></h4>
+<ul>
+<li>No header files! Modules are automatically resolved</li>
+<li>No makefiles to write - Cargo handles everything</li>
+<li>Dependencies are downloaded automatically (like vcpkg/conan)</li>
+<li>No undefined behavior in safe Rust</li>
+</ul>
+<h4 id="net-developers"><a class="header" href="#net-developers">.NET Developers</a></h4>
+<ul>
+<li>Similar project structure to .NET Core</li>
+<li><code>Cargo.toml</code> is like <code>.csproj</code></li>
+<li>crates.io is like NuGet</li>
+<li>No garbage collector - deterministic destruction</li>
+</ul>
+<h3 id="quick-wins-why-youll-love-rusts-tooling"><a class="header" href="#quick-wins-why-youll-love-rusts-tooling">Quick Wins: Why You’ll Love Rust’s Tooling</a></h3>
+<ol>
+<li><strong>Unified tooling</strong>: Everything works together seamlessly</li>
+<li><strong>Excellent error messages</strong>: The compiler teaches you Rust</li>
+<li><strong>Fast incremental compilation</strong>: cargo check is lightning fast</li>
+<li><strong>Built-in testing</strong>: No need for external test frameworks</li>
+<li><strong>Documentation generation</strong>: Automatic API docs from comments</li>
+</ol>
+<h3 id="setting-up-for-success"><a class="header" href="#setting-up-for-success">Setting Up for Success</a></h3>
+<h4 id="enable-useful-rustup-components"><a class="header" href="#enable-useful-rustup-components">Enable Useful Rustup Components</a></h4>
+<pre><code class="language-bash">rustup component add clippy       # Linter
+rustup component add rustfmt      # Formatter
+rustup component add rust-src     # Source code for std library
+</code></pre>
+<h4 id="create-a-learning-workspace"><a class="header" href="#create-a-learning-workspace">Create a Learning Workspace</a></h4>
+<p>Let’s set up a workspace for this course:</p>
+<pre><code class="language-bash">mkdir rust-course-workspace
+cd rust-course-workspace
+cargo new --bin day1_exercises
+cargo new --lib day1_library
+</code></pre>
+<h3 id="common-setup-issues-and-solutions"><a class="header" href="#common-setup-issues-and-solutions">Common Setup Issues and Solutions</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Issue</th><th>Solution</th></tr></thead><tbody>
+<tr><td>“rustc not found”</td><td>Restart terminal after installation</td></tr>
+<tr><td>Slow compilation</td><td>Enable sccache: <code>cargo install sccache</code></td></tr>
+<tr><td>Can’t debug</td><td>Zed has built-in debugging support</td></tr>
+<tr><td>Windows linker errors</td><td>Install Visual Studio Build Tools</td></tr>
+</tbody></table>
+</div>
+<h2 id="exercises"><a class="header" href="#exercises">Exercises</a></h2>
+<h3 id="exercise-11-toolchain-exploration"><a class="header" href="#exercise-11-toolchain-exploration">Exercise 1.1: Toolchain Exploration</a></h3>
+<p>Create a new project and explore these cargo commands:</p>
+<ul>
+<li><code>cargo tree</code> - View dependency tree</li>
+<li><code>cargo doc --open</code> - Generate and view documentation</li>
+<li><code>cargo clippy</code> - Run the linter</li>
+</ul>
+<h3 id="exercise-12-build-configurations"><a class="header" href="#exercise-12-build-configurations">Exercise 1.2: Build Configurations</a></h3>
+<ol>
+<li>Create a simple program that prints the numbers 1 to 1_000_000</li>
+<li>Time the difference between debug and release builds</li>
+<li>Compare binary sizes</li>
+</ol>
+<h3 id="exercise-13-first-debugging-session"><a class="header" href="#exercise-13-first-debugging-session">Exercise 1.3: First Debugging Session</a></h3>
+<ol>
+<li>Create a program with an intentional panic</li>
+<li>Set a breakpoint in Zed</li>
+<li>Step through the code with the debugger</li>
+</ol>
+<h2 id="key-takeaways"><a class="header" href="#key-takeaways">Key Takeaways</a></h2>
+<p>✅ Rust’s tooling is unified and modern - no need for complex build systems</p>
+<p>✅ Cargo handles dependencies, building, testing, and documentation</p>
+<p>✅ Debug vs Release builds have significant performance differences</p>
+<p>✅ The development experience is similar to modern .NET, better than typical C++</p>
+<p>✅ Zed with built-in rust-analyzer provides excellent IDE support</p>
+<hr />
+<p>Next up: <a href="./02_fundamentals.html">Chapter 2: Rust Fundamentals</a> - Let’s write some Rust!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../day1/02_fundamentals.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../day1/02_fundamentals.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

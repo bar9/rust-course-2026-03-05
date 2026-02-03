@@ -1,0 +1,10 @@
+# Configure default target for builds (NOT for tests)
+# This demonstrates building for embedded ARM while testing on host
+
+[build]
+# Default target for `cargo build` - thumbv7m is ARM Cortex-M3 (no_std by default)
+target = "thumbv7m-none-eabi"
+
+[target.thumbv7m-none-eabi]
+# Linker for the embedded target
+linker = "rust-lld"

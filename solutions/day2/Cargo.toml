@@ -1,0 +1,23 @@
+[workspace]
+members = [
+    "06_collections",
+    "07_traits",
+    "08_generics",
+    "09_pattern_matching",
+    "10_error_handling",
+    "11_iterators",
+    "12_macros",
+    "13_modules_visibility",
+]
+
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+authors = ["Rust Course Contributors"]
+license = "MIT OR Apache-2.0"
+description = "Day 2 exercises for the Rust programming course"
+
+[workspace.dependencies]
+# Common dependencies that multiple crates might use
+# Add shared dependencies here if needed in the future

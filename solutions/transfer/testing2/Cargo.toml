@@ -1,0 +1,22 @@
+[package]
+name = "testing2"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "embedded"
+path = "src/main.rs"
+test = false
+
+[dependencies]
+heapless = "0.8"
+
+[profile.release]
+# Optimize for size in release builds
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+panic = "abort"

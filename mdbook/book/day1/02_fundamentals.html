@@ -1,0 +1,974 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Rust Fundamentals - Rust Course 2025</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Interactive Rust programming course built with mdBook">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Rust Course 2025</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/bar9/rust-course-2025-11-20" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/bar9/rus    t-course-2025-11-20/edit/main/mdbook/src/day1/02_fundamentals.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-2-rust-fundamentals"><a class="header" href="#chapter-2-rust-fundamentals">Chapter 2: Rust Fundamentals</a></h1>
+<h2 id="type-system-variables-functions-and-basic-collections"><a class="header" href="#type-system-variables-functions-and-basic-collections">Type System, Variables, Functions, and Basic Collections</a></h2>
+<h3 id="learning-objectives"><a class="header" href="#learning-objectives">Learning Objectives</a></h3>
+<p>By the end of this chapter, you’ll be able to:</p>
+<ul>
+<li>Understand Rust’s type system and its relationship to C++/.NET</li>
+<li>Work with variables, mutability, and type inference</li>
+<li>Write and call functions with proper parameter passing</li>
+<li>Handle strings effectively (String vs &amp;str)</li>
+<li>Use basic collections (Vec, HashMap, etc.)</li>
+<li>Apply pattern matching with match expressions</li>
+</ul>
+<hr />
+<h2 id="rusts-type-system-safety-first"><a class="header" href="#rusts-type-system-safety-first">Rust’s Type System: Safety First</a></h2>
+<p>Rust’s type system is designed around two core principles:</p>
+<ol>
+<li><strong>Memory Safety</strong>: Prevent segfaults, buffer overflows, and memory leaks</li>
+<li><strong>Thread Safety</strong>: Eliminate data races at compile time</li>
+</ol>
+<h3 id="comparison-with-familiar-languages"><a class="header" href="#comparison-with-familiar-languages">Comparison with Familiar Languages</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Concept</th><th>C++</th><th>C#/.NET</th><th>Rust</th></tr></thead><tbody>
+<tr><td>Null checking</td><td>Runtime (segfaults)</td><td>Runtime (NullReferenceException)</td><td>Compile-time (Option<T>)</td></tr>
+<tr><td>Memory management</td><td>Manual (new/delete)</td><td>GC</td><td>Compile-time (ownership)</td></tr>
+<tr><td>Thread safety</td><td>Runtime (mutexes)</td><td>Runtime (locks)</td><td>Compile-time (Send/Sync)</td></tr>
+<tr><td>Type inference</td><td><code>auto</code> (C++11+)</td><td><code>var</code></td><td>Extensive</td></tr>
+</tbody></table>
+</div>
+<hr />
+<h2 id="variables-and-mutability"><a class="header" href="#variables-and-mutability">Variables and Mutability</a></h2>
+<h3 id="the-default-immutable"><a class="header" href="#the-default-immutable">The Default: Immutable</a></h3>
+<p>In Rust, variables are <strong>immutable by default</strong> - a key philosophical difference:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Immutable by default
+let x = 5;
+x = 6; // ❌ Compile error!
+
+// Must explicitly opt into mutability
+let mut y = 5;
+y = 6; // ✅ This works
+<span class="boring">}</span></code></pre></pre>
+<p><strong>Why This Matters:</strong></p>
+<ul>
+<li>Prevents accidental modifications</li>
+<li>Enables compiler optimizations</li>
+<li>Makes concurrent code safer</li>
+<li>Forces you to think about what should change</li>
+</ul>
+<h3 id="comparison-to-cnet"><a class="header" href="#comparison-to-cnet">Comparison to C++/.NET</a></h3>
+<pre><code class="language-cpp">// C++: Mutable by default
+int x = 5;        // Mutable
+const int y = 5;  // Immutable
+</code></pre>
+<pre><code class="language-csharp">// C#: Mutable by default  
+int x = 5;              // Mutable
+readonly int y = 5;     // Immutable (field-level)
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust: Immutable by default
+let x = 5;         // Immutable
+let mut y = 5;     // Mutable
+<span class="boring">}</span></code></pre></pre>
+<h3 id="type-annotations-and-inference"><a class="header" href="#type-annotations-and-inference">Type Annotations and Inference</a></h3>
+<p>Rust has excellent type inference, but you can be explicit when needed:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Type inference (preferred when obvious)
+let x = 42;                    // inferred as i32
+let name = "Alice";            // inferred as &amp;str
+let numbers = vec![1, 2, 3];   // inferred as Vec&lt;i32&gt;
+
+// Explicit types (when needed for clarity or disambiguation)
+let x: i64 = 42;
+let pi: f64 = 3.14159;
+let is_ready: bool = true;
+<span class="boring">}</span></code></pre></pre>
+<h3 id="variable-shadowing"><a class="header" href="#variable-shadowing">Variable Shadowing</a></h3>
+<p>Rust allows “shadowing” - reusing variable names with different types:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let x = 5;           // x is i32
+let x = "hello";     // x is now &amp;str (different variable!)
+let x = x.len();     // x is now usize
+<span class="boring">}</span></code></pre></pre>
+<p>This is different from mutation and is often used for transformations.</p>
+<hr />
+<h2 id="basic-types"><a class="header" href="#basic-types">Basic Types</a></h2>
+<h3 id="integer-types"><a class="header" href="#integer-types">Integer Types</a></h3>
+<p>Rust is explicit about integer sizes to prevent overflow issues:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Signed integers
+let a: i8 = -128;      // 8-bit signed (-128 to 127)
+let b: i16 = 32_000;   // 16-bit signed  
+let c: i32 = 2_000_000_000;  // 32-bit signed (default)
+let d: i64 = 9_223_372_036_854_775_807; // 64-bit signed
+let e: i128 = 1;       // 128-bit signed
+
+// Unsigned integers  
+let f: u8 = 255;       // 8-bit unsigned (0 to 255)
+let g: u32 = 4_000_000_000; // 32-bit unsigned
+let h: u64 = 18_446_744_073_709_551_615; // 64-bit unsigned
+
+// Architecture-dependent
+let size: usize = 64;  // Pointer-sized (32 or 64 bit)
+let diff: isize = -32; // Signed pointer-sized
+<span class="boring">}</span></code></pre></pre>
+<p><strong>Note:</strong> Underscores in numbers are just for readability (like <code>1'000'000</code> in C++14+).</p>
+<h3 id="floating-point-types"><a class="header" href="#floating-point-types">Floating Point Types</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let pi: f32 = 3.14159;    // Single precision
+let e: f64 = 2.718281828; // Double precision (default)
+<span class="boring">}</span></code></pre></pre>
+<h3 id="boolean-and-character-types"><a class="header" href="#boolean-and-character-types">Boolean and Character Types</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let is_rust_awesome: bool = true;
+let emoji: char = '🦀';  // 4-byte Unicode scalar value
+
+// Note: char is different from u8!
+let byte_value: u8 = b'A';    // ASCII byte
+let unicode_char: char = 'A'; // Unicode character
+<span class="boring">}</span></code></pre></pre>
+<h3 id="tuples-fixed-size-heterogeneous-collections"><a class="header" href="#tuples-fixed-size-heterogeneous-collections">Tuples: Fixed-Size Heterogeneous Collections</a></h3>
+<p>Tuples group values of different types into a compound type. They have a fixed size once declared:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Creating tuples
+let tup: (i32, f64, u8) = (500, 6.4, 1);
+let tup = (500, 6.4, 1);  // Type inference works too
+
+// Destructuring
+let (x, y, z) = tup;
+println!("The value of y is: {}", y);
+
+// Direct access using dot notation
+let five_hundred = tup.0;
+let six_point_four = tup.1;
+let one = tup.2;
+
+// Empty tuple (unit type)
+let unit = ();  // Type () - represents no meaningful value
+
+// Common use: returning multiple values from functions
+fn get_coordinates() -&gt; (f64, f64) {
+    (37.7749, -122.4194)  // San Francisco coordinates
+}
+
+let (lat, lon) = get_coordinates();
+<span class="boring">}</span></code></pre></pre>
+<p><strong>Comparison with C++/C#:</strong></p>
+<ul>
+<li>C++: <code>std::tuple&lt;int, double, char&gt;</code> or <code>std::pair&lt;T1, T2&gt;</code></li>
+<li>C#: <code>(int, double, byte)</code> value tuples or <code>Tuple&lt;int, double, byte&gt;</code></li>
+<li>Rust: <code>(i32, f64, u8)</code> - simpler syntax, built into the language</li>
+</ul>
+<h3 id="arrays-fixed-size-homogeneous-collections"><a class="header" href="#arrays-fixed-size-homogeneous-collections">Arrays: Fixed-Size Homogeneous Collections</a></h3>
+<p>Arrays in Rust have a fixed size known at compile time and store elements of the same type:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Creating arrays
+let months = ["January", "February", "March", "April", "May", "June",
+              "July", "August", "September", "October", "November", "December"];
+
+let a: [i32; 5] = [1, 2, 3, 4, 5];  // Type annotation: [type; length]
+let a = [1, 2, 3, 4, 5];            // Type inference
+
+// Initialize with same value
+let zeros = [0; 100];  // Creates array with 100 zeros
+
+// Accessing elements
+let first = months[0];   // "January"
+let second = months[1];  // "February"
+
+// Array slicing
+let slice = &amp;months[0..3];  // ["January", "February", "March"]
+
+// Iterating over arrays
+for month in &amp;months {
+    println!("{}", month);
+}
+
+// Arrays vs Vectors comparison
+let arr = [1, 2, 3];        // Stack-allocated, fixed size
+let vec = vec![1, 2, 3];    // Heap-allocated, growable
+<span class="boring">}</span></code></pre></pre>
+<p><strong>Key Differences from Vectors:</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Feature</th><th>Array <code>[T; N]</code></th><th>Vector <code>Vec&lt;T&gt;</code></th></tr></thead><tbody>
+<tr><td>Size</td><td>Fixed at compile time</td><td>Growable at runtime</td></tr>
+<tr><td>Memory</td><td>Stack-allocated</td><td>Heap-allocated</td></tr>
+<tr><td>Performance</td><td>Faster for small, fixed data</td><td>Better for dynamic data</td></tr>
+<tr><td>Use case</td><td>Known size, performance critical</td><td>Unknown or changing size</td></tr>
+</tbody></table>
+</div>
+<p><strong>Comparison with C++/C#:</strong></p>
+<ul>
+<li>C++: <code>int arr[5]</code> or <code>std::array&lt;int, 5&gt;</code></li>
+<li>C#: <code>int[] arr = new int[5]</code> (heap) or <code>Span&lt;int&gt;</code> (stack)</li>
+<li>Rust: <code>let arr: [i32; 5]</code> - size is part of the type</li>
+</ul>
+<hr />
+<h2 id="functions-the-building-blocks"><a class="header" href="#functions-the-building-blocks">Functions: The Building Blocks</a></h2>
+<h3 id="function-syntax"><a class="header" href="#function-syntax">Function Syntax</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Basic function
+fn greet() {
+    println!("Hello, world!");
+}
+
+// Function with parameters
+fn add(x: i32, y: i32) -&gt; i32 {
+    x + y  // No semicolon = return value
+}
+
+// Alternative explicit return
+fn subtract(x: i32, y: i32) -&gt; i32 {
+    return x - y;  // Explicit return with semicolon
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="key-differences-from-cnet"><a class="header" href="#key-differences-from-cnet">Key Differences from C++/.NET</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Aspect</th><th>C++</th><th>C#/.NET</th><th>Rust</th></tr></thead><tbody>
+<tr><td>Return syntax</td><td><code>return x;</code></td><td><code>return x;</code></td><td><code>x</code> (no semicolon)</td></tr>
+<tr><td>Parameter types</td><td><code>int x</code></td><td><code>int x</code></td><td><code>x: i32</code></td></tr>
+<tr><td>Return type</td><td><code>int func()</code></td><td><code>int Func()</code></td><td><code>fn func() -&gt; i32</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="parameters-by-value-vs-by-reference"><a class="header" href="#parameters-by-value-vs-by-reference">Parameters: By Value vs By Reference</a></h3>
+<pre><pre class="playground"><code class="language-rust">// By value (default) - ownership transferred
+fn take_ownership(s: String) {
+    println!("{}", s);
+    // s is dropped here
+}
+
+// By immutable reference - borrowing
+fn borrow_immutable(s: &amp;String) {
+    println!("{}", s);
+    // s reference is dropped, original still valid
+}
+
+// By mutable reference - mutable borrowing  
+fn borrow_mutable(s: &amp;mut String) {
+    s.push_str(" world");
+}
+
+// Example usage
+fn main() {
+    let mut message = String::from("Hello");
+    
+    borrow_immutable(&amp;message);    // ✅ Can borrow immutably
+    borrow_mutable(&amp;mut message);  // ✅ Can borrow mutably
+    take_ownership(message);       // ✅ Transfers ownership
+    
+    // println!("{}", message);    // ❌ Error: value moved
+}</code></pre></pre>
+<hr />
+<h2 id="control-flow-making-decisions-and-repeating"><a class="header" href="#control-flow-making-decisions-and-repeating">Control Flow: Making Decisions and Repeating</a></h2>
+<p>Rust provides familiar control flow constructs with some unique features that enhance safety and expressiveness.</p>
+<h3 id="if-expressions"><a class="header" href="#if-expressions">if Expressions</a></h3>
+<p>In Rust, <code>if</code> is an expression, not just a statement - it returns a value:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Basic if/else
+let number = 7;
+if number &lt; 5 {
+    println!("Less than 5");
+} else if number == 5 {
+    println!("Equal to 5");
+} else {
+    println!("Greater than 5");
+}
+
+// if as an expression returning values
+let condition = true;
+let number = if condition { 5 } else { 10 };  // number = 5
+
+// Must have same type in both branches
+// let value = if condition { 5 } else { "ten" }; // ❌ Type mismatch!
+<span class="boring">}</span></code></pre></pre>
+<h3 id="loops-three-flavors"><a class="header" href="#loops-three-flavors">Loops: Three Flavors</a></h3>
+<p>Rust offers three loop constructs, each with specific use cases:</p>
+<h4 id="loop---infinite-loop-with-break"><a class="header" href="#loop---infinite-loop-with-break">loop - Infinite Loop with Break</a></h4>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Infinite loop - must break explicitly
+let mut counter = 0;
+let result = loop {
+    counter += 1;
+    
+    if counter == 10 {
+        break counter * 2;  // loop can return a value!
+    }
+};
+println!("Result: {}", result);  // Prints: Result: 20
+
+// Loop labels for nested loops
+'outer: loop {
+    println!("Entered outer loop");
+    
+    'inner: loop {
+        println!("Entered inner loop");
+        break 'outer;  // Break the outer loop
+    }
+    
+    println!("This won't execute");
+}
+<span class="boring">}</span></code></pre></pre>
+<h4 id="while---conditional-loop"><a class="header" href="#while---conditional-loop">while - Conditional Loop</a></h4>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Standard while loop
+let mut number = 3;
+while number != 0 {
+    println!("{}!", number);
+    number -= 1;
+}
+println!("LIFTOFF!!!");
+
+// Common pattern: checking conditions
+let mut stack = vec![1, 2, 3];
+while !stack.is_empty() {
+    let value = stack.pop();
+    println!("Popped: {:?}", value);
+}
+<span class="boring">}</span></code></pre></pre>
+<h4 id="for---iterator-loop"><a class="header" href="#for---iterator-loop">for - Iterator Loop</a></h4>
+<p>The <code>for</code> loop is the most idiomatic way to iterate in Rust:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Iterate over a collection
+let numbers = vec![1, 2, 3, 4, 5];
+for num in &amp;numbers {
+    println!("{}", num);
+}
+
+// Range syntax (exclusive end)
+for i in 0..5 {
+    println!("{}", i);  // Prints 0, 1, 2, 3, 4
+}
+
+// Inclusive range
+for i in 1..=5 {
+    println!("{}", i);  // Prints 1, 2, 3, 4, 5
+}
+
+// Enumerate for index and value
+let items = vec!["a", "b", "c"];
+for (index, value) in items.iter().enumerate() {
+    println!("{}: {}", index, value);
+}
+
+// Reverse iteration
+for i in (1..=3).rev() {
+    println!("{}", i);  // Prints 3, 2, 1
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="comparison-with-cnet"><a class="header" href="#comparison-with-cnet">Comparison with C++/.NET</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Feature</th><th>C++</th><th>C#/.NET</th><th>Rust</th></tr></thead><tbody>
+<tr><td>for-each</td><td><code>for (auto&amp; x : vec)</code></td><td><code>foreach (var x in list)</code></td><td><code>for x in &amp;vec</code></td></tr>
+<tr><td>Index loop</td><td><code>for (int i = 0; i &lt; n; i++)</code></td><td><code>for (int i = 0; i &lt; n; i++)</code></td><td><code>for i in 0..n</code></td></tr>
+<tr><td>Infinite</td><td><code>while (true)</code></td><td><code>while (true)</code></td><td><code>loop</code></td></tr>
+<tr><td>Break with value</td><td>Not supported</td><td>Not supported</td><td><code>break value</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="control-flow-best-practices"><a class="header" href="#control-flow-best-practices">Control Flow Best Practices</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Prefer iterators over index loops
+// ❌ Not idiomatic
+let vec = vec![1, 2, 3];
+let mut i = 0;
+while i &lt; vec.len() {
+    println!("{}", vec[i]);
+    i += 1;
+}
+
+// ✅ Idiomatic
+for item in &amp;vec {
+    println!("{}", item);
+}
+
+// Use if-let for simple pattern matching
+let optional = Some(5);
+
+// Verbose match
+match optional {
+    Some(value) =&gt; println!("Got: {}", value),
+    None =&gt; {},
+}
+
+// Cleaner if-let
+if let Some(value) = optional {
+    println!("Got: {}", value);
+}
+
+// while-let for repeated pattern matching
+let mut stack = vec![1, 2, 3];
+while let Some(top) = stack.pop() {
+    println!("Popped: {}", top);
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h2 id="strings-the-complex-topic"><a class="header" href="#strings-the-complex-topic">Strings: The Complex Topic</a></h2>
+<p>Strings in Rust are more complex than C++/.NET due to UTF-8 handling and ownership.</p>
+<h3 id="string-vs-str-the-key-distinction"><a class="header" href="#string-vs-str-the-key-distinction">String vs &amp;str: The Key Distinction</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// String: Owned, growable, heap-allocated
+let mut owned_string = String::from("Hello");
+owned_string.push_str(" world");
+
+// &amp;str: String slice, borrowed, usually stack-allocated  
+let string_slice: &amp;str = "Hello world";
+let slice_of_string: &amp;str = &amp;owned_string;
+<span class="boring">}</span></code></pre></pre>
+<h3 id="comparison-table"><a class="header" href="#comparison-table">Comparison Table</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Type</th><th>C++ Equivalent</th><th>C#/.NET Equivalent</th><th>Rust</th></tr></thead><tbody>
+<tr><td>Owned</td><td><code>std::string</code></td><td><code>string</code></td><td><code>String</code></td></tr>
+<tr><td>View/Slice</td><td><code>std::string_view</code></td><td><code>ReadOnlySpan&lt;char&gt;</code></td><td><code>&amp;str</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="common-string-operations"><a class="header" href="#common-string-operations">Common String Operations</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Creation
+let s1 = String::from("Hello");
+let s2 = "World".to_string();
+let s3 = String::new();
+
+// Concatenation
+let combined = format!("{} {}", s1, s2);  // Like printf/String.Format
+let mut s4 = String::from("Hello");
+s4.push_str(" world");                    // Append string
+s4.push('!');                            // Append character
+
+// Length and iteration
+println!("Length: {}", s4.len());        // Byte length!
+println!("Chars: {}", s4.chars().count()); // Character count
+
+// Iterating over characters (proper Unicode handling)
+for c in s4.chars() {
+    println!("{}", c);
+}
+
+// Iterating over bytes
+for byte in s4.bytes() {
+    println!("{}", byte);
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="string-slicing"><a class="header" href="#string-slicing">String Slicing</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let s = String::from("hello world");
+
+let hello = &amp;s[0..5];   // "hello" - byte indices!
+let world = &amp;s[6..11];  // "world"
+let full = &amp;s[..];      // Entire string
+
+// ⚠️ Warning: Slicing can panic with Unicode!
+let unicode = "🦀🔥";
+// let bad = &amp;unicode[0..1]; // ❌ Panics! Cuts through emoji
+let good = &amp;unicode[0..4];   // ✅ One emoji (4 bytes)
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h2 id="collections-vectors-and-hash-maps"><a class="header" href="#collections-vectors-and-hash-maps">Collections: Vectors and Hash Maps</a></h2>
+<h3 id="vec-the-workhorse-collection"><a class="header" href="#vec-the-workhorse-collection">Vec<T>: The Workhorse Collection</a></h3>
+<p>Vectors are Rust’s equivalent to <code>std::vector</code> or <code>List&lt;T&gt;</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Creation
+let mut numbers = Vec::new();           // Empty vector
+let mut numbers: Vec&lt;i32&gt; = Vec::new(); // With type annotation
+let numbers = vec![1, 2, 3, 4, 5];     // vec! macro
+
+// Adding elements
+let mut v = Vec::new();
+v.push(1);
+v.push(2);
+v.push(3);
+
+// Accessing elements
+let first = &amp;v[0];                      // Panics if out of bounds
+let first_safe = v.get(0);              // Returns Option&lt;&amp;T&gt;
+
+match v.get(0) {
+    Some(value) =&gt; println!("First: {}", value),
+    None =&gt; println!("Vector is empty"),
+}
+
+// Iteration
+for item in &amp;v {                        // Borrow each element
+    println!("{}", item);
+}
+
+for item in &amp;mut v {                    // Mutable borrow
+    *item *= 2;
+}
+
+for item in v {                         // Take ownership (consumes v)
+    println!("{}", item);
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="hashmapk-v-key-value-storage"><a class="header" href="#hashmapk-v-key-value-storage">HashMap&lt;K, V&gt;: Key-Value Storage</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::collections::HashMap;
+
+// Creation
+let mut scores = HashMap::new();
+scores.insert("Alice".to_string(), 100);
+scores.insert("Bob".to_string(), 85);
+
+// Or with collect
+let teams = vec!["Blue", "Yellow"];
+let initial_scores = vec![10, 50];
+let scores: HashMap&lt;_, _&gt; = teams
+    .iter()
+    .zip(initial_scores.iter())
+    .collect();
+
+// Accessing values
+let alice_score = scores.get("Alice");
+match alice_score {
+    Some(score) =&gt; println!("Alice: {}", score),
+    None =&gt; println!("Alice not found"),
+}
+
+// Iteration
+for (key, value) in &amp;scores {
+    println!("{}: {}", key, value);
+}
+
+// Entry API for complex operations
+scores.entry("Charlie".to_string()).or_insert(0);
+*scores.entry("Alice".to_string()).or_insert(0) += 10;
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h2 id="pattern-matching-with-match"><a class="header" href="#pattern-matching-with-match">Pattern Matching with match</a></h2>
+<p>The <code>match</code> expression is Rust’s powerful control flow construct:</p>
+<h3 id="basic-matching"><a class="header" href="#basic-matching">Basic Matching</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let number = 7;
+
+match number {
+    1 =&gt; println!("One"),
+    2 | 3 =&gt; println!("Two or three"),
+    4..=6 =&gt; println!("Four to six"),
+    _ =&gt; println!("Something else"),  // Default case
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="matching-with-option"><a class="header" href="#matching-with-option">Matching with Option<T></a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let maybe_number: Option&lt;i32&gt; = Some(5);
+
+match maybe_number {
+    Some(value) =&gt; println!("Got: {}", value),
+    None =&gt; println!("Nothing here"),
+}
+
+// Or use if let for simple cases
+if let Some(value) = maybe_number {
+    println!("Got: {}", value);
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="destructuring"><a class="header" href="#destructuring">Destructuring</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let point = (3, 4);
+
+match point {
+    (0, 0) =&gt; println!("Origin"),
+    (x, 0) =&gt; println!("On x-axis at {}", x),
+    (0, y) =&gt; println!("On y-axis at {}", y),
+    (x, y) =&gt; println!("Point at ({}, {})", x, y),
+}
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h2 id="common-pitfalls-and-solutions"><a class="header" href="#common-pitfalls-and-solutions">Common Pitfalls and Solutions</a></h2>
+<h3 id="pitfall-1-string-vs-str-confusion"><a class="header" href="#pitfall-1-string-vs-str-confusion">Pitfall 1: String vs &amp;str Confusion</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// ❌ Common mistake
+fn greet(name: String) {  // Takes ownership
+    println!("Hello, {}", name);
+}
+
+let name = String::from("Alice");
+greet(name);
+// greet(name); // ❌ Error: value moved
+
+// ✅ Better approach
+fn greet(name: &amp;str) {    // Borrows
+    println!("Hello, {}", name);
+}
+
+let name = String::from("Alice");
+greet(&amp;name);
+greet(&amp;name); // ✅ Still works
+<span class="boring">}</span></code></pre></pre>
+<h3 id="pitfall-2-integer-overflow-in-debug-mode"><a class="header" href="#pitfall-2-integer-overflow-in-debug-mode">Pitfall 2: Integer Overflow in Debug Mode</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let mut x: u8 = 255;
+x += 1;  // Panics in debug mode, wraps in release mode
+
+// Use checked arithmetic for explicit handling
+match x.checked_add(1) {
+    Some(result) =&gt; x = result,
+    None =&gt; println!("Overflow detected!"),
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="pitfall-3-vec-index-out-of-bounds"><a class="header" href="#pitfall-3-vec-index-out-of-bounds">Pitfall 3: Vec Index Out of Bounds</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let v = vec![1, 2, 3];
+// let x = v[10];  // ❌ Panics!
+
+// ✅ Safe alternatives
+let x = v.get(10);          // Returns Option&lt;&amp;T&gt;
+let x = v.get(0).unwrap();  // Explicit panic with better message
+<span class="boring">}</span></code></pre></pre>
+<hr />
+<h2 id="key-takeaways"><a class="header" href="#key-takeaways">Key Takeaways</a></h2>
+<ol>
+<li><strong>Immutability by default</strong> encourages safer, more predictable code</li>
+<li><strong>Type inference is powerful</strong> but explicit types help with clarity</li>
+<li><strong>String handling is more complex</strong> but prevents many Unicode bugs</li>
+<li><strong>Collections are memory-safe</strong> with compile-time bounds checking</li>
+<li><strong>Pattern matching is exhaustive</strong> and catches errors at compile time</li>
+</ol>
+<p><strong>Memory Insight:</strong> Unlike C++ or .NET, Rust tracks ownership at compile time, preventing entire classes of bugs without runtime overhead.</p>
+<hr />
+<h2 id="exercises"><a class="header" href="#exercises">Exercises</a></h2>
+<h3 id="exercise-1-basic-types-and-functions"><a class="header" href="#exercise-1-basic-types-and-functions">Exercise 1: Basic Types and Functions</a></h3>
+<p>Create a program that:</p>
+<ol>
+<li>Defines a function <code>calculate_bmi(height: f64, weight: f64) -&gt; f64</code></li>
+<li>Uses the function to calculate BMI for several people</li>
+<li>Returns a string description (“Underweight”, “Normal”, “Overweight”, “Obese”)</li>
+</ol>
+<pre><pre class="playground"><code class="language-rust">// Starter code
+fn calculate_bmi(height: f64, weight: f64) -&gt; f64 {
+    // Your implementation here
+}
+
+fn bmi_category(bmi: f64) -&gt; &amp;'static str {
+    // Your implementation here
+}
+
+fn main() {
+    let height = 1.75; // meters
+    let weight = 70.0;  // kg
+    
+    let bmi = calculate_bmi(height, weight);
+    let category = bmi_category(bmi);
+    
+    println!("BMI: {:.1}, Category: {}", bmi, category);
+}</code></pre></pre>
+<h3 id="exercise-2-string-manipulation"><a class="header" href="#exercise-2-string-manipulation">Exercise 2: String Manipulation</a></h3>
+<p>Write a function that:</p>
+<ol>
+<li>Takes a sentence as input</li>
+<li>Returns the longest word in the sentence</li>
+<li>Handle the case where multiple words have the same length</li>
+</ol>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn find_longest_word(sentence: &amp;str) -&gt; Option&lt;&amp;str&gt; {
+    // Your implementation here
+    // Hint: Use split_whitespace() and max_by_key()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_longest_word() {
+        assert_eq!(find_longest_word("Hello world rust"), Some("Hello"));
+        assert_eq!(find_longest_word(""), None);
+        assert_eq!(find_longest_word("a bb ccc"), Some("ccc"));
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="exercise-3-collections-and-pattern-matching"><a class="header" href="#exercise-3-collections-and-pattern-matching">Exercise 3: Collections and Pattern Matching</a></h3>
+<p>Build a simple inventory system:</p>
+<ol>
+<li>Use HashMap to store item names and quantities</li>
+<li>Implement functions to add, remove, and check items</li>
+<li>Use pattern matching to handle different scenarios</li>
+</ol>
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
+
+struct Inventory {
+    items: HashMap&lt;String, u32&gt;,
+}
+
+impl Inventory {
+    fn new() -&gt; Self {
+        Inventory {
+            items: HashMap::new(),
+        }
+    }
+    
+    fn add_item(&amp;mut self, name: String, quantity: u32) {
+        // Your implementation here
+    }
+    
+    fn remove_item(&amp;mut self, name: &amp;str, quantity: u32) -&gt; Result&lt;(), String&gt; {
+        // Your implementation here
+        // Return error if not enough items
+    }
+    
+    fn check_stock(&amp;self, name: &amp;str) -&gt; Option&lt;u32&gt; {
+        // Your implementation here
+    }
+}
+
+fn main() {
+    let mut inventory = Inventory::new();
+    
+    inventory.add_item("Apples".to_string(), 10);
+    inventory.add_item("Bananas".to_string(), 5);
+    
+    match inventory.remove_item("Apples", 3) {
+        Ok(()) =&gt; println!("Removed 3 apples"),
+        Err(e) =&gt; println!("Error: {}", e),
+    }
+    
+    match inventory.check_stock("Apples") {
+        Some(quantity) =&gt; println!("Apples in stock: {}", quantity),
+        None =&gt; println!("Apples not found"),
+    }
+}</code></pre></pre>
+<hr />
+<h2 id="additional-resources"><a class="header" href="#additional-resources">Additional Resources</a></h2>
+<ul>
+<li><a href="https://doc.rust-lang.org/book/ch03-02-data-types.html">The Rust Book - Data Types</a></li>
+<li><a href="https://doc.rust-lang.org/rust-by-example/primitives.html">Rust by Example - Primitives</a></li>
+<li><a href="https://blog.mgattozzi.dev/how-do-i-str-string/">String vs &amp;str Guide</a></li>
+</ul>
+<p><strong>Next Up:</strong> In Chapter 3, we’ll explore structs and enums - Rust’s powerful data modeling tools that go far beyond what you might expect from C++/.NET experience.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../day1/01_setup.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../day1/03_structs_enums.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../day1/01_setup.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../day1/03_structs_enums.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
