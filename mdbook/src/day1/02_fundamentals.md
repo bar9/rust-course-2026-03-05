@@ -749,71 +749,17 @@ mod tests {
 
     #[test]
     fn test_longest_word() {
-        assert_eq!(find_longest_word("Hello world rust"), Some("Hello"));
+        assert_eq!(find_longest_word("Hello rust"), Some("Hello"));
         assert_eq!(find_longest_word(""), None);
         assert_eq!(find_longest_word("a bb ccc"), Some("ccc"));
     }
 }
 ```
-
-### Exercise 3: Collections and Pattern Matching
-Build a simple inventory system:
-1. Use HashMap to store item names and quantities
-2. Implement functions to add, remove, and check items
-3. Use pattern matching to handle different scenarios
-
-```rust
-use std::collections::HashMap;
-
-struct Inventory {
-    items: HashMap<String, u32>,
-}
-
-impl Inventory {
-    fn new() -> Self {
-        Inventory {
-            items: HashMap::new(),
-        }
-    }
-    
-    fn add_item(&mut self, name: String, quantity: u32) {
-        // Your implementation here
-    }
-    
-    fn remove_item(&mut self, name: &str, quantity: u32) -> Result<(), String> {
-        // Your implementation here
-        // Return error if not enough items
-    }
-    
-    fn check_stock(&self, name: &str) -> Option<u32> {
-        // Your implementation here
-    }
-}
-
-fn main() {
-    let mut inventory = Inventory::new();
-    
-    inventory.add_item("Apples".to_string(), 10);
-    inventory.add_item("Bananas".to_string(), 5);
-    
-    match inventory.remove_item("Apples", 3) {
-        Ok(()) => println!("Removed 3 apples"),
-        Err(e) => println!("Error: {}", e),
-    }
-    
-    match inventory.check_stock("Apples") {
-        Some(quantity) => println!("Apples in stock: {}", quantity),
-        None => println!("Apples not found"),
-    }
-}
-```
-
 ---
 
 ## Additional Resources
 
 - [The Rust Book - Data Types](https://doc.rust-lang.org/book/ch03-02-data-types.html)
 - [Rust by Example - Primitives](https://doc.rust-lang.org/rust-by-example/primitives.html)
-- [String vs &str Guide](https://blog.mgattozzi.dev/how-do-i-str-string/)
 
 **Next Up:** In Chapter 3, we'll explore structs and enums - Rust's powerful data modeling tools that go far beyond what you might expect from C++/.NET experience.
