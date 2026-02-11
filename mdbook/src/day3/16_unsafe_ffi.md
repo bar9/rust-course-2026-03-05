@@ -2,7 +2,7 @@
 
 This chapter covers unsafe Rust operations and Foreign Function Interface (FFI) for interfacing with C/C++ code. Unsafe Rust provides low-level control when needed while FFI enables integration with existing system libraries and codebases.
 
-**Edition 2024 Note**: Starting with Rust 1.82 and Edition 2024, all `extern` blocks must be marked as `unsafe extern` to make the unsafety of FFI calls explicit. This change improves clarity about where unsafe operations occur.
+**Edition 2024 Note**: Starting with Rust 1.85 and Edition 2024, all `extern` blocks must be marked as `unsafe extern` to make the unsafety of FFI calls explicit. This change improves clarity about where unsafe operations occur.
 
 ## Part 1: Unsafe Rust Foundations
 
@@ -75,19 +75,8 @@ fn split_at_mut(values: &mut [i32], mid: usize) -> (&mut [i32], &mut [i32]) {
 ### Mutable Static Variables
 
 ```rust
-static mut COUNTER: u32 = 0;
-
-fn increment_counter() {
-    unsafe {
-        COUNTER += 1;
-    }
-}
-
-fn get_counter() -> u32 {
-    unsafe {
-        COUNTER
-    }
-}
+// Note: In Edition 2024, references to `static mut` are a hard error
+// (`static_mut_refs` lint). Use atomics or raw pointers instead.
 
 // Better alternative: use atomic types
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -134,7 +123,7 @@ unsafe {
     println!("Float: {}", u.f);
 
     // Type punning (reinterpreting bits)
-    println!("As int: {}", u.i);  // Undefined behavior!
+    println!("As int: {}", u.i);  // Type punning: reinterprets float bits as int (well-defined for repr(C))
 }
 ```
 
@@ -143,20 +132,15 @@ unsafe {
 ### Manual FFI Bindings
 
 ```rust
-use std::os::raw::{c_char, c_int, c_void};
-use std::ffi::{CString, CStr};
+use std::ffi::{c_char, c_int, c_void, CString, CStr};
 
 // Link to system libraries
+// Edition 2024 (Rust 1.85+): extern blocks must be marked `unsafe extern`
 #[link(name = "m")]  // Math library
-extern "C" {
+unsafe extern "C" {
     fn sqrt(x: f64) -> f64;
     fn pow(base: f64, exponent: f64) -> f64;
 }
-
-// Note: In Edition 2024 (Rust 1.82+), extern blocks must be marked unsafe:
-// unsafe extern "C" {
-//     fn sqrt(x: f64) -> f64;
-// }
 
 // Safe wrapper
 pub fn safe_sqrt(x: f64) -> f64 {
@@ -167,7 +151,7 @@ pub fn safe_sqrt(x: f64) -> f64 {
 }
 
 // Working with strings
-extern "C" {
+unsafe extern "C" {
     fn strlen(s: *const c_char) -> usize;
 }
 
@@ -194,7 +178,7 @@ struct Rectangle {
     bottom_right: Point,
 }
 
-extern "C" {
+unsafe extern "C" {
     fn calculate_area(rect: *const Rectangle) -> f64;
 }
 
@@ -214,7 +198,7 @@ bindgen = "0.70"
 cc = "1.1"
 ```
 
-```rust
+```rust,ignore
 // build.rs
 use std::env;
 use std::path::PathBuf;
@@ -228,7 +212,7 @@ fn main() {
     // Generate bindings
     let bindings = bindgen::Builder::default()
         .header("src/wrapper.h")
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("Unable to generate bindings");
 
@@ -239,7 +223,7 @@ fn main() {
 }
 ```
 
-```rust
+```rust,ignore
 // src/lib.rs
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -262,13 +246,12 @@ pub fn use_native_function() {
 crate-type = ["cdylib", "staticlib"]
 
 [build-dependencies]
-cbindgen = "0.26"
+cbindgen = "0.29"
 ```
 
 ```rust
 // src/lib.rs
-use std::ffi::{c_char, CStr};
-use std::os::raw::c_int;
+use std::ffi::{c_char, c_int, CStr};
 
 #[no_mangle]
 pub extern "C" fn rust_add(a: c_int, b: c_int) -> c_int {
@@ -298,9 +281,8 @@ pub extern "C" fn rust_free_string(s: *mut c_char) {
 }
 ```
 
-```rust
+```rust,ignore
 // build.rs
-use cbindgen;
 use std::env;
 
 fn main() {
@@ -328,7 +310,7 @@ cxx = "1.0"
 cxx-build = "1.0"
 ```
 
-```rust
+```rust,ignore
 // src/lib.rs
 #[cxx::bridge]
 mod ffi {
@@ -364,7 +346,7 @@ pub fn use_blobstore() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-```rust
+```rust,ignore
 // build.rs
 fn main() {
     cxx_build::bridge("src/lib.rs")
@@ -421,6 +403,7 @@ mod linux {
 use std::arch::x86_64::*;
 
 #[cfg(target_arch = "x86_64")]
+#[target_feature(enable = "avx")]
 unsafe fn dot_product_simd(a: &[f32], b: &[f32]) -> f32 {
     assert_eq!(a.len(), b.len());
     assert!(a.len() % 8 == 0);
@@ -445,7 +428,7 @@ unsafe fn dot_product_simd(a: &[f32], b: &[f32]) -> f32 {
 
 ### Safe Abstraction Pattern
 
-```rust
+```rust,ignore
 pub struct SafeWrapper {
     ptr: *mut SomeFFIType,
 }
@@ -484,15 +467,15 @@ impl Drop for SafeWrapper {
     }
 }
 
-// Ensure thread safety only if the C library supports it
-unsafe impl Send for SafeWrapper {}
-unsafe impl Sync for SafeWrapper {}
+// Only implement these if the underlying C library is truly thread-safe!
+// unsafe impl Send for SafeWrapper {}
+// unsafe impl Sync for SafeWrapper {}
 ```
 
 ### Error Handling Across FFI
 
 ```rust
-use std::ffi::CString;
+use std::ffi::{c_char, CStr, CString};
 use std::ptr;
 
 #[repr(C)]

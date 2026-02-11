@@ -4,9 +4,9 @@ This course is targeted at developers experienced in other procedural or object-
 * Day 1: Rust foundations and the concept of ownership
 * Day 2: Type system and error handling
 * Day 3: Building programs & advanced topics
-* Day 4: Embedded hands-on
+* Day 4: imgforge — hands-on image processing service
 
-Each day is a mix of theory and exercises. day 1 to 3 feature exercises in a std environment (building cli applications on desktop). day 4 features no_std and building embedded applications on an ESP32C3 microcontroller.
+Each day is a mix of theory and exercises. Days 1 to 3 feature exercises in a std environment (building CLI applications on desktop). Day 4 builds an incremental image processing service (CLI, web server, FFI acceleration) applying the theory from Day 3.
 
 # This repository
 Contains the course slides/script as an mdbook and solutions to the exercises in the `solutions` directory. Will be updated before and during the course.
@@ -78,115 +78,31 @@ rm -rf hello-rust
 
 If you can complete all these steps successfully, your environment is ready for the first two days of the Rust course!
 
-# Installation Instructions Day 4 - ESP32-C3 Embedded Development
+# Additional Setup for Day 4 — imgforge
 
-For Thursday, we will be using ESP32-C3 boards. Please install the following tooling in advance:
+Day 4 builds an image processing service. The standard Rust toolchain from Days 1-3 is sufficient. No additional setup is strictly required.
 
-## Required ESP32-C3 Tooling
+## Optional: TurboJPEG System Library
 
-### 1. Rust Source Code
-This downloads the rust source code. Needed to build the std or core library, no pre-compiled provided:
+Chapter 21 demonstrates FFI acceleration using TurboJPEG. This is **optional** — the project works without it using the pure-Rust `image` crate.
 
-```bash
-rustup component add rust-src
-```
-
-### 2. ESP32-C3 Target Architecture
-The toolchain for the ESP32-C3 (RISC-V architecture):
+If you want to try the FFI chapter with the real TurboJPEG library:
 
 ```bash
-rustup target add riscv32imc-unknown-none-elf
+# Ubuntu/Debian
+sudo apt install libturbojpeg0-dev
+
+# macOS
+brew install jpeg-turbo
+
+# Windows — the turbojpeg crate bundles pre-built binaries, no action needed
 ```
 
-### 3. cargo-espflash for Flashing
-cargo-espflash is the recommended tool for flashing ESP32-C3 boards across all platforms.
-
-**Installation:**
+To verify (optional):
 ```bash
-# Install cargo-espflash
-cargo install cargo-espflash
+cargo build --features turbojpeg --manifest-path solutions/day4/imgforge/Cargo.toml
 ```
 
-### 4. probe-rs for Debugging (Optional - Linux/macOS)
-probe-rs provides debugging capabilities and works best on Linux and macOS.
-
-**Installation (Optional):**
-```bash
-# Install probe-rs (optional, primarily for debugging)
-cargo install probe-rs --features cli
-```
-
-### 5. esp-generate for Project Scaffolding
-Tool for creating no_std projects targeting ESP32 chips:
-
-```bash
-cargo install esp-generate
-```
-
-## Verification Steps
-
-### Test ESP32-C3 Setup
-1. **Connect your ESP32-C3 board** via USB cable
-2. **Generate a test project**:
-   ```bash
-   esp-generate --chip esp32c3 test-esp32c3
-   cd test-esp32c3
-   ```
-3. **Build the project**:
-   ```bash
-   cargo build --release
-   ```
-4. **Flash to the board**:
-   ```bash
-   cargo run --release
-   ```
-
-### Zed Editor ESP32 Debugging Setup
-If using Zed editor:
-1. **Install probe-rs extension** in Zed: [https://zed.dev/extensions/probe-rs](https://zed.dev/extensions/probe-rs)
-2. probe-rs integrates seamlessly with Zed for debugging ESP32-C3 projects
-
-## Platform-Specific Instructions
-
-### Windows
-- Use PowerShell or Command Prompt
-- Consider adding Windows Defender exclusions for Cargo directories
-- Ensure you have the latest USB drivers
-
-### macOS/Linux
-- Installation should work out of the box
-- Use Terminal for all commands
-- May need to add user to dialout group on Linux: `sudo usermod -a -G dialout $USER`
-
-## Troubleshooting ESP32-C3 Setup
-
-### Common Issues and Solutions
-
-**Flashing Issues:**
-- If cargo-espflash fails to detect the board, ensure the ESP32-C3 is connected via USB and the correct port is being used
-
-**Port Detection Issues:**
-- On Windows: Check Device Manager for COM port assignments
-- On Linux: Ensure user is in dialout group (see below)
-- On macOS: Look for `/dev/cu.usbserial-*` or `/dev/cu.usbmodem*` devices
-
-**ESP32-C3 Chip Revision:**
-- Most ESP32-C3 boards work with cargo-espflash regardless of revision
-- Check revision during flashing: Look for "Chip is ESP32-C3 (revision 3)" message
-
-**Permission Issues (Linux):**
-- Add user to dialout group: `sudo usermod -a -G dialout $USER`
-- Log out and back in for changes to take effect
-
-### Alternative Debugging Tools
-For advanced debugging beyond cargo-espflash:
-- **probe-rs**: Best on Linux/macOS for hardware debugging
-- **ESP-IDF monitor**: Traditional ESP toolchain option
-- **Serial monitor**: Use any serial terminal for basic output monitoring
-
-## Resources
-- [ESP-RS Documentation](https://docs.esp-rs.org/)
-- [probe-rs Documentation](https://probe.rs/)
-- [ESP32-C3 Hardware Reference](https://www.espressif.com/en/products/socs/esp32-c3)
+If this fails, don't worry — the feature flag stays off and everything else works fine.
 
 **→ Regularly pull updates to the repo**

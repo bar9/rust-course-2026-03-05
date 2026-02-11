@@ -27,16 +27,16 @@ Rust editions are opt-in milestones released every three years that allow the la
 **Edition 2021:**
 - Disjoint captures in closures (only capture used fields)
 - `array.into_iter()` iterates by value
-- New reserved keywords: `try`
+- Reserved syntax prefixes (`ident"..."`, `ident'...'`, `ident#...`)
 - Default to resolver v2 for Cargo
 - Panic macros require format strings
 
 **Edition 2024:**
 - MSRV-aware dependency resolution (resolver v3)
-- `gen` keyword for generators/coroutines
+- `gen` keyword reserved (for future generator blocks; not yet stabilized)
 - `std::env::set_var` and `remove_var` marked unsafe
 - Tail expression temporary lifetime changes
-- `unsafe extern` blocks and attributes
+- `extern` blocks must now be written as `unsafe extern` (items inside can be marked `safe`)
 
 ### Configuration and Migration
 
@@ -70,7 +70,7 @@ cargo fix --edition --edition-idioms
 
 Rust uses a release train model with three channels:
 
-```
+```text
 Nightly (daily) → Beta (6 weeks) → Stable (6 weeks)
 ```
 
@@ -112,10 +112,10 @@ rustup install nightly-2024-11-28
 ```
 
 Enabling unstable features:
-```rust
+```rust,ignore
 // Only works on nightly
-#![feature(generators)]
-#![feature(type_alias_impl_trait)]
+#![feature(gen_blocks)]
+#![feature(specialization)]
 ```
 
 ### Project Toolchain Configuration
@@ -145,13 +145,12 @@ cargo +1.82.0 test
 strategy:
   matrix:
     rust: [stable, beta, nightly]
-    continue-on-error: ${{ matrix.rust == 'nightly' }}
+continue-on-error: ${{ matrix.rust == 'nightly' }}
 
 steps:
-  - uses: actions-rs/toolchain@v1
+  - uses: dtolnay/rust-toolchain@master
     with:
       toolchain: ${{ matrix.rust }}
-      override: true
 ```
 
 ## 3. Dependency Resolution
@@ -182,7 +181,7 @@ tilde = "~1.0.0"
 
 Cargo builds a dependency graph and resolves versions using maximum version strategy:
 
-```
+```text
 Your Project
 ├── crate-a = "1.0"
 │   └── shared = "2.1"    # Transitive dependency
@@ -198,7 +197,7 @@ Resolution: Cargo picks `shared = "2.3"` (highest compatible version).
 |----------|------------|----------|
 | **v1** | Edition 2015/2018 | Unifies features across all uses |
 | **v2** | Edition 2021 | Independent feature resolution per target |
-| **v3** | Edition 2024 (Rust 1.84+) | MSRV-aware dependency selection, default in 2024 |
+| **v3** | Edition 2024 (Rust 1.85+) | MSRV-aware dependency selection, default in 2024 |
 
 ```toml
 # Explicit resolver configuration
@@ -340,85 +339,7 @@ cargo run -p crate-b --example demo
 
 ## 7. Private Registries
 
-### Registry Options
-
-| Solution | Type | Best For |
-|----------|------|----------|
-| **Kellnr** | Self-hosted registry | Small-medium teams |
-| **Alexandrie** | Alternative registry | Custom deployments |
-| **Panamax** | Mirror | Offline development |
-| **Artifactory** | Enterprise | Large organizations |
-
-### Kellnr Setup
-
-```toml
-# .cargo/config.toml
-[registries]
-kellnr = {
-    index = "git://your-kellnr-host:9418/index",
-    token = "your-auth-token"
-}
-```
-
-Docker deployment:
-```bash
-docker run -p 8000:8000 \
-  -e "KELLNR_ORIGIN__HOSTNAME=your-domain" \
-  ghcr.io/kellnr/kellnr:latest
-```
-
-### Alexandrie Configuration
-
-```toml
-# alexandrie.toml
-[database]
-url = "postgresql://localhost/alexandrie"
-
-[storage]
-type = "s3"
-bucket = "my-crates"
-region = "us-east-1"
-```
-
-### Panamax Mirror
-
-```bash
-# Initialize mirror
-panamax init my-mirror
-
-# Sync dependencies
-cargo vendor
-panamax sync my-mirror vendor/
-
-# Serve mirror
-panamax serve my-mirror --port 8080
-```
-
-Client configuration:
-```toml
-# .cargo/config.toml
-[source.my-mirror]
-registry = "http://panamax.internal/crates.io-index"
-
-[source.crates-io]
-replace-with = "my-mirror"
-```
-
-### Artifactory Setup
-
-```toml
-# .cargo/config.toml
-[registries]
-artifactory = {
-    index = "https://artifactory.company.com/artifactory/api/cargo/rust-local"
-}
-```
-
-Publishing:
-```bash
-cargo publish --registry artifactory \
-  --token "Bearer <access-token>"
-```
+For organizations that need to host internal crates, private registries such as [Kellnr](https://kellnr.io/) (self-hosted) and [JFrog Artifactory](https://jfrog.com/artifactory/) (enterprise) are available. See the [Cargo registries documentation](https://doc.rust-lang.org/cargo/reference/registries.html) for configuration details.
 
 ## 8. Build Configuration
 
@@ -448,7 +369,7 @@ panic = "abort"
 
 ### Build Scripts
 
-```rust
+```rust,ignore
 // build.rs
 fn main() {
     // Link system libraries
@@ -511,6 +432,18 @@ alloc = ["serde/alloc"]
 performance = ["lto", "parallel"]
 ```
 
+#### The `dep:` Prefix for Optional Dependencies
+
+```toml
+[dependencies]
+eframe = { version = "0.30", optional = true }
+
+[features]
+gui = ["dep:eframe"]  # dep: prefix avoids creating an implicit "eframe" feature
+```
+
+The `dep:` prefix (stabilized in Rust 1.60) explicitly references an optional dependency without creating an implicit feature of the same name. This gives you full control over your public feature namespace and is used in Day 4 for feature-gated modules.
+
 ### Git and Path Dependencies
 
 ```toml
@@ -563,7 +496,7 @@ pub fn factorial(n: u32) -> u32 {
 # Generate and open docs
 cargo doc --open
 
-# Include dependencies
+# Exclude dependency documentation (your crate only)
 cargo doc --no-deps
 
 # Document private items
@@ -577,7 +510,7 @@ cargo test --doc
 
 Structure example code for users:
 
-```
+```text
 examples/
 ├── basic.rs           # cargo run --example basic
 ├── advanced.rs        # cargo run --example advanced
@@ -604,7 +537,7 @@ name = "my_benchmark"
 harness = false
 ```
 
-```rust
+```rust,ignore
 // benches/my_benchmark.rs
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 
@@ -680,58 +613,7 @@ unknown-git = "warn"
 cargo deny check
 ```
 
-## 14. Dependency Update Strategies
-
-### Manual Updates
-
-```bash
-# Update all dependencies
-cargo update
-
-# Update specific crate
-cargo update -p serde
-
-# See outdated dependencies
-cargo install cargo-outdated
-cargo outdated
-```
-
-### Automated Updates with Dependabot
-
-```yaml
-# .github/dependabot.yml
-version: 2
-updates:
-  - package-ecosystem: "cargo"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    groups:
-      aws:
-        patterns: ["aws-*"]
-      tokio:
-        patterns: ["tokio*"]
-```
-
-### Renovate Configuration
-
-```json
-{
-  "extends": ["config:base"],
-  "cargo": {
-    "enabled": true,
-    "rangeStrategy": "bump"
-  },
-  "packageRules": [{
-    "matchManagers": ["cargo"],
-    "matchPackagePatterns": ["^aws-"],
-    "groupName": "AWS SDK"
-  }]
-}
-```
-
-## 15. Reproducible Builds
+## 14. Reproducible Builds
 
 Ensure reproducibility with:
 
@@ -739,27 +621,6 @@ Ensure reproducibility with:
 2. **Pinned toolchain** via `rust-toolchain.toml`
 3. **`--locked` flag** in CI builds
 4. **Vendored dependencies** for offline builds
-
-### Docker Example
-
-```dockerfile
-FROM rust:1.82 AS builder
-WORKDIR /app
-
-# Cache dependencies
-COPY Cargo.lock Cargo.toml ./
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-RUN cargo build --release --locked
-RUN rm -rf src
-
-# Build application
-COPY . .
-RUN touch src/main.rs && cargo build --release --locked
-
-FROM debian:bookworm-slim
-COPY --from=builder /app/target/release/app /usr/local/bin/
-CMD ["app"]
-```
 
 ### Vendoring Dependencies
 
@@ -781,7 +642,7 @@ EOF
 cargo build --offline
 ```
 
-## 16. Useful Commands
+## 15. Useful Commands
 
 ```bash
 # Dependency tree

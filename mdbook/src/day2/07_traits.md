@@ -135,6 +135,8 @@ fn main() {
 
 ## Generic Functions with Trait Bounds
 
+> **Note:** This section previews generic syntax (`<T: Trait>`). Chapter 8 covers generics in full — for now, focus on the *trait* side: what capabilities you can require.
+
 ### Basic Trait Bounds
 
 ```rust
@@ -219,7 +221,7 @@ fn pet_animal(animal: &dyn Animal) {
 ```rust
 trait Iterator {
     type Item;  // Associated type
-    
+
     fn next(&mut self) -> Option<Self::Item>;
 }
 
@@ -236,7 +238,7 @@ impl Counter {
 
 impl Iterator for Counter {
     type Item = u32;  // Specify the associated type
-    
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.current < self.max {
             let current = self.current;
@@ -248,6 +250,24 @@ impl Iterator for Counter {
     }
 }
 ```
+
+### Associated Types vs Generic Parameters
+
+Why does `Iterator` use `type Item` instead of `trait Iterator<Item>`? The key difference: **an associated type allows exactly one implementation per type**, while a generic parameter allows many.
+
+```rust,ignore
+// Associated type: Counter can only iterate over ONE type (u32)
+impl Iterator for Counter {
+    type Item = u32;
+    // ...
+}
+
+// If Iterator were generic: Counter could iterate over u32 AND &str — confusing!
+// impl Iterator<u32> for Counter { ... }
+// impl Iterator<&str> for Counter { ... }
+```
+
+**Rule of thumb:** use an associated type when there's a single natural choice for the type (e.g., what an iterator yields). Use a generic parameter when the same type should work with multiple choices (e.g., `From<T>` — a type can be created `From<String>` *and* `From<&str>`).
 
 ---
 

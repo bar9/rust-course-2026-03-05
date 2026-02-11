@@ -1,199 +1,238 @@
-# Chapter 19: Rust Patterns
+# Chapter 19: Rust Design Patterns
 
 ## Learning Objectives
-- Master memory management patterns from C++/.NET to Rust
-- Understand Option<T> for null safety
-- Apply type system patterns and explicit conversions
-- Use traits for composition over inheritance
-- Write idiomatic Rust code
 
-## Memory Management Patterns
+- Apply library-first project structure with a thin `main.rs`
+- Use trait-based backends for testability and runtime flexibility
+- Define crate-level error enums with `derive_more::From` and a `Result<T>` alias
+- Use feature flags to conditionally compile modules and dependencies
+- Recognize the Builder, Newtype, and Type-State patterns
+- Understand RAII via the `Drop` trait and zero-copy techniques with `Cow`
 
-### From RAII to Ownership
+This chapter covers design patterns that come up repeatedly in production Rust code. Several of them are applied directly in the Day 4 imgforge project.
 
-The transition from C++ RAII or .NET garbage collection to Rust ownership requires a fundamental mindset shift:
+---
 
-| Aspect | C++ | .NET | Rust |
-|--------|-----|------|------|
-| Memory control | Manual/RAII | Garbage collector | Ownership system |
-| Safety guarantees | Runtime checks | Runtime managed | Compile-time |
-| Performance | Predictable | GC pauses | Zero-cost |
-| Resource cleanup | Destructors | Finalizers (unreliable) | Drop trait |
+## 1. Thin `main.rs` -- Library-First Structure
 
-### Resource Management Pattern
+In idiomatic Rust, `main.rs` does as little as possible. It parses configuration (or CLI arguments), then delegates to the library crate defined in `lib.rs`.
 
-**C++ RAII:**
-```cpp
-class FileHandler {
-    std::unique_ptr<FILE, decltype(&fclose)> file;
-public:
-    FileHandler(const char* path)
-        : file(fopen(path, "r"), fclose) {
-        if (!file) throw std::runtime_error("Failed to open");
-    }
-    // Manual destructor, copy prevention, etc.
-};
-```
-
-**Rust Ownership:**
-```rust
-use std::fs::File;
-use std::io::{BufReader, BufRead, Result};
-
-struct FileHandler {
-    reader: BufReader<File>,
-}
-
-impl FileHandler {
-    fn new(path: &str) -> Result<Self> {
-        Ok(FileHandler {
-            reader: BufReader::new(File::open(path)?),
-        })
-    }
-
-    fn read_lines(&mut self) -> Result<Vec<String>> {
-        self.reader.by_ref().lines().collect()
-    }
-    // Drop automatically implemented - no manual cleanup needed
+```rust,ignore
+fn main() -> myapp::Result<()> {
+    let config = myapp::Config::parse();
+    myapp::run(config)
 }
 ```
 
-### Shared State Patterns
+All application logic lives in the library. This has concrete benefits:
 
-**C++ Shared Pointer:**
-```cpp
-std::shared_ptr<Data> data = std::make_shared<Data>();
-auto data2 = data;  // Reference counted
+- **Testability** -- integration tests (`tests/*.rs`) can only access the library crate, not `main.rs`. If your logic is in `main`, it cannot be tested from integration tests.
+- **Reusability** -- other binaries in the same crate (e.g., a CLI and a server) share the library without duplication.
+- **Benchmarks** -- criterion benchmarks import from the library crate the same way tests do.
+
+A typical project layout:
+
+```text
+myapp/
+  Cargo.toml
+  src/
+    main.rs        # 3-5 lines: parse config, call lib
+    lib.rs         # declares modules, re-exports public API
+    config.rs      # CLI argument parsing (clap)
+    error.rs       # crate-level Error enum + Result alias
+    transform.rs   # core logic
+  tests/
+    integration.rs # imports myapp as a library
 ```
 
-**Rust Arc (Atomic Reference Counting):**
-```rust
-use std::sync::Arc;
+Production Rust projects like ripgrep and cargo itself follow this pattern. The Day 4 imgforge project (Chapter 20) uses it from the start.
 
-let data = Arc::new(Data::new());
-let data2 = Arc::clone(&data);  // Explicit clone for clarity
-```
+---
 
-### Interior Mutability
+## 2. Trait-Based Backends
 
-When you need to mutate data behind a shared reference:
+Define behavior as a trait, then provide multiple implementations. Consumers depend on the trait, not a concrete type.
 
-```rust
-use std::cell::RefCell;
-use std::rc::Rc;
-
-// Single-threaded interior mutability
-let data = Rc::new(RefCell::new(vec![1, 2, 3]));
-data.borrow_mut().push(4);
-
-// Multi-threaded interior mutability
-use std::sync::{Arc, Mutex};
-let shared = Arc::new(Mutex::new(vec![1, 2, 3]));
-shared.lock().unwrap().push(4);
-```
-
-## Null Safety with Option<T>
-
-### Eliminating Null Pointer Exceptions
-
-Tony Hoare's "billion-dollar mistake" is eliminated in Rust:
-
-**C++/C# Nullable:**
-```cpp
-std::string* find_user(int id) {
-    if (id == 1) return new std::string("Alice");
-    return nullptr;  // Potential crash
+```rust,ignore
+pub trait Transform: Send + Sync {
+    fn apply(&self, input: &[u8], op: &Operation) -> Result<Vec<u8>>;
+    fn name(&self) -> &str;
 }
 ```
 
-**Rust Option:**
-```rust
-fn find_user(id: u32) -> Option<String> {
-    if id == 1 {
-        Some("Alice".to_string())
+Two backends can implement this trait:
+
+```rust,ignore
+pub struct ImageRsBackend;
+
+impl Transform for ImageRsBackend {
+    fn apply(&self, input: &[u8], op: &Operation) -> Result<Vec<u8>> {
+        // Use the pure-Rust `image` crate
+        todo!()
+    }
+    fn name(&self) -> &str { "image-rs" }
+}
+```
+
+```rust,ignore
+pub struct MockBackend;
+
+impl Transform for MockBackend {
+    fn apply(&self, input: &[u8], _op: &Operation) -> Result<Vec<u8>> {
+        // Return input unchanged -- useful for tests
+        Ok(input.to_vec())
+    }
+    fn name(&self) -> &str { "mock" }
+}
+```
+
+### Selecting the backend
+
+At **compile time** (static dispatch via generics):
+
+```rust,ignore
+fn process<T: Transform>(backend: &T, data: &[u8], op: &Operation) -> Result<Vec<u8>> {
+    backend.apply(data, op)
+}
+```
+
+At **runtime** (dynamic dispatch via trait objects):
+
+```rust,ignore
+fn create_backend(use_turbo: bool) -> Box<dyn Transform> {
+    if use_turbo {
+        Box::new(TurboJpegBackend::new())
     } else {
-        None
+        Box::new(ImageRsBackend)
+    }
+}
+```
+
+The `Send + Sync` bounds on the trait allow the boxed backend to be shared across threads (e.g., stored in `Arc` and passed to async handlers).
+
+This pattern enables testing without modifying production code -- pass `MockBackend` in tests, `ImageRsBackend` in production. It is central to the Day 4 imgforge architecture (Chapters 20-24).
+
+---
+
+## 3. Crate-Level Error Enum + `Result<T>` Alias
+
+A single `Error` enum per crate (or architectural layer) collects every error kind the crate can produce. A type alias shortens function signatures.
+
+```rust,ignore
+use derive_more::From;
+
+pub type Result<T> = core::result::Result<T, Error>;
+
+#[derive(Debug, From)]
+pub enum Error {
+    // Domain errors -- constructed manually at call sites
+    UnsupportedFormat,
+    DimensionTooLarge { width: u32, height: u32 },
+
+    // External errors -- auto-converted via `?`
+    #[from]
+    Io(std::io::Error),
+    #[from]
+    Image(image::ImageError),
+}
+
+impl core::fmt::Display for Error {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 
-fn use_user() {
-    match find_user(42) {
-        Some(name) => println!("Found: {}", name),
-        None => println!("Not found"),
+impl std::error::Error for Error {}
+```
+
+### How it works
+
+- **`#[from]` on a variant** auto-generates a `From<std::io::Error> for Error` impl (and similarly for `image::ImageError`). This is what makes `?` propagation work: when a function returns `std::io::Error` and the caller returns `Result<T, Error>`, the compiler uses the `From` impl to convert automatically.
+- **Domain errors** like `UnsupportedFormat` have no `#[from]` attribute. They are constructed explicitly at the call site: `return Err(Error::UnsupportedFormat)`. This is intentional -- domain errors represent decisions, not mechanical conversions.
+- **`Display` as `Debug`** (`write!(f, "{self:?}")`) is a pragmatic shortcut. For CLI and server error output, the Debug representation is often sufficient. If you later need user-friendly messages, implement `Display` properly per variant.
+- **`core::result::Result`** on the right-hand side of the type alias makes it visually clear that we refer to the standard library's `Result`, not recursively referencing the alias being defined. Both `core::result::Result` and `std::result::Result` are the same type.
+
+### Comparison with alternatives
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| `derive_more::From` | Lightweight, selective `#[from]`, minimal proc-macro | Manual `Display` impl |
+| `thiserror` | Generates `Display` from `#[error("...")]` attributes | Heavier proc-macro for the same `From` generation |
+| `anyhow` | Minimal boilerplate, good for scripts and prototypes | Erases error type -- callers cannot match on variants |
+
+For libraries and applications where callers need to handle specific error variants, `derive_more::From` or `thiserror` are appropriate. `anyhow` is suited for top-level binaries where you only need to print the error and exit.
+
+The Day 4 imgforge project (Chapter 20) uses this exact pattern with `derive_more::From`.
+
+---
+
+## 4. Feature-Gated Modules
+
+Cargo feature flags enable conditional compilation of entire modules and their dependencies.
+
+### Declaring features in `Cargo.toml`
+
+```toml
+[features]
+default = []
+server = ["dep:axum", "dep:tokio"]
+gui    = ["dep:eframe", "dep:egui"]
+
+[dependencies]
+axum   = { version = "0.8", optional = true }
+tokio  = { version = "1", features = ["full"], optional = true }
+eframe = { version = "0.30", optional = true }
+egui   = { version = "0.30", optional = true }
+```
+
+The `dep:` prefix (stabilized in Rust 1.60) makes the dependency optional without implicitly creating a feature of the same name. Before `dep:`, writing `axum = { optional = true }` would create both a dependency *and* a feature named `axum`, which led to confusion.
+
+### Gating modules in `lib.rs`
+
+```rust,ignore
+#[cfg(feature = "server")]
+pub mod server;
+
+#[cfg(feature = "gui")]
+pub mod gui;
+```
+
+When a feature is not enabled, the module is not compiled at all -- its optional dependencies are not compiled, its code is not checked, and it does not appear in the binary.
+
+### Gating within a function
+
+```rust,ignore
+pub fn create_backend() -> Box<dyn Transform> {
+    #[cfg(feature = "turbojpeg")]
+    {
+        return Box::new(TurboJpegBackend::new());
     }
 
-    // Or use combinators
-    let name = find_user(1)
-        .map(|n| n.to_uppercase())
-        .unwrap_or_else(|| "ANONYMOUS".to_string());
-}
-```
-
-### Option Combinators
-
-```rust
-fn process_optional_data(input: Option<i32>) -> i32 {
-    input
-        .map(|x| x * 2)           // Transform if Some
-        .filter(|x| x > &10)      // Keep only if predicate true
-        .unwrap_or(0)              // Provide default
-}
-
-// Chaining operations
-fn get_config_value() -> Option<String> {
-    std::env::var("CONFIG_PATH").ok()
-        .and_then(|path| std::fs::read_to_string(path).ok())
-        .and_then(|contents| contents.lines().next().map(String::from))
-}
-```
-
-## Type System Patterns
-
-### No Implicit Conversions
-
-Rust requires explicit type conversions for safety:
-
-```rust
-fn process(value: f64) { }
-
-fn main() {
-    let x: i32 = 42;
-    // process(x);           // ERROR: expected f64
-    process(x as f64);       // Explicit cast
-    process(f64::from(x));   // Type conversion
-
-    // String conversions are explicit
-    let s = String::from("hello");
-    let slice: &str = &s;
-    let owned = slice.to_string();
-}
-```
-
-### Newtype Pattern
-
-Wrap primitive types for type safety:
-
-```rust
-struct Kilometers(f64);
-struct Miles(f64);
-
-impl Kilometers {
-    fn to_miles(&self) -> Miles {
-        Miles(self.0 * 0.621371)
+    #[cfg(not(feature = "turbojpeg"))]
+    {
+        Box::new(ImageRsBackend)
     }
 }
-
-fn calculate_fuel_efficiency(distance: Kilometers, fuel: Liters) -> KmPerLiter {
-    KmPerLiter(distance.0 / fuel.0)
-}
 ```
 
-### Builder Pattern
+### Benefits
 
-For complex object construction:
+- **Smaller binaries** -- users who only need the CLI do not carry the HTTP server stack.
+- **Faster compile times** -- fewer dependencies to download and build.
+- **No unused code** -- the compiler does not process gated modules unless requested.
+
+Feature flags are used throughout Day 4: Chapter 21 (TurboJPEG backend), Chapter 22 (Axum server), and Chapter 25 (egui GUI).
+
+---
+
+## 5. Builder Pattern
+
+The Builder pattern is useful when a struct has many optional fields or requires validation before construction. Rust has no function overloading or default parameter values, so builders fill that role.
 
 ```rust
-#[derive(Debug, Default)]
+use std::time::Duration;
+
+#[derive(Debug)]
 pub struct ServerConfig {
     host: String,
     port: u16,
@@ -226,9 +265,19 @@ impl ServerConfigBuilder {
         self
     }
 
+    pub fn max_connections(mut self, n: usize) -> Self {
+        self.max_connections = Some(n);
+        self
+    }
+
+    pub fn timeout(mut self, t: Duration) -> Self {
+        self.timeout = Some(t);
+        self
+    }
+
     pub fn build(self) -> Result<ServerConfig, &'static str> {
         Ok(ServerConfig {
-            host: self.host.ok_or("host required")?,
+            host: self.host.ok_or("host is required")?,
             port: self.port.unwrap_or(8080),
             max_connections: self.max_connections.unwrap_or(100),
             timeout: self.timeout.unwrap_or(Duration::from_secs(30)),
@@ -236,227 +285,60 @@ impl ServerConfigBuilder {
     }
 }
 
-// Usage
-let config = ServerConfig::builder()
-    .host("localhost")
-    .port(3000)
-    .build()?;
-```
+fn main() -> Result<(), &'static str> {
+    let config = ServerConfig::builder()
+        .host("localhost")
+        .port(3000)
+        .build()?;
 
-## Traits vs Inheritance
-
-### Composition Over Inheritance
-
-**C++ Inheritance:**
-```cpp
-class Animal { virtual void make_sound() = 0; };
-class Dog : public Animal {
-    void make_sound() override { cout << "Woof"; }
-};
-```
-
-**Rust Traits:**
-```rust
-trait Animal {
-    fn make_sound(&self);
-}
-
-struct Dog {
-    name: String,
-}
-
-impl Animal for Dog {
-    fn make_sound(&self) {
-        println!("{} says Woof", self.name);
-    }
-}
-
-// Multiple trait implementation
-trait Swimmer {
-    fn swim(&self);
-}
-
-impl Swimmer for Dog {
-    fn swim(&self) {
-        println!("{} is swimming", self.name);
-    }
-}
-```
-
-### Trait Objects for Runtime Polymorphism
-
-```rust
-// Static dispatch (monomorphization)
-fn feed_animal<T: Animal>(animal: &T) {
-    animal.make_sound();
-}
-
-// Dynamic dispatch (trait objects)
-fn feed_any_animal(animal: &dyn Animal) {
-    animal.make_sound();
-}
-
-// Storing heterogeneous collections
-let animals: Vec<Box<dyn Animal>> = vec![
-    Box::new(Dog { name: "Rex".into() }),
-    Box::new(Cat { name: "Whiskers".into() }),
-];
-```
-
-### Extension Traits
-
-Add methods to existing types:
-
-```rust
-trait StringExt {
-    fn words(&self) -> Vec<&str>;
-}
-
-impl StringExt for str {
-    fn words(&self) -> Vec<&str> {
-        self.split_whitespace().collect()
-    }
-}
-
-// Now available on all &str
-let words = "hello world".words();
-```
-
-## Error Handling Patterns
-
-### Result Type Pattern
-
-Replace exceptions with explicit error handling:
-
-```rust
-#[derive(Debug)]
-enum DataError {
-    NotFound,
-    ParseError(String),
-    IoError(std::io::Error),
-}
-
-impl From<std::io::Error> for DataError {
-    fn from(err: std::io::Error) -> Self {
-        DataError::IoError(err)
-    }
-}
-
-fn load_data(path: &str) -> Result<Data, DataError> {
-    let contents = std::fs::read_to_string(path)?;  // ? operator for propagation
-    parse_data(&contents).ok_or(DataError::ParseError("Invalid format".into()))
-}
-
-// Error handling at call site
-match load_data("config.json") {
-    Ok(data) => process(data),
-    Err(DataError::NotFound) => use_defaults(),
-    Err(e) => eprintln!("Error: {:?}", e),
-}
-```
-
-### Custom Error Types
-
-```rust
-use std::fmt;
-
-#[derive(Debug)]
-struct ValidationError {
-    field: String,
-    message: String,
-}
-
-impl fmt::Display for ValidationError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.field, self.message)
-    }
-}
-
-impl std::error::Error for ValidationError {}
-
-// Result type alias for cleaner signatures
-type ValidationResult<T> = Result<T, ValidationError>;
-
-fn validate_email(email: &str) -> ValidationResult<()> {
-    if !email.contains('@') {
-        return Err(ValidationError {
-            field: "email".into(),
-            message: "Invalid email format".into(),
-        });
-    }
+    println!("{:?}", config);
     Ok(())
 }
 ```
 
-## Functional Patterns
+Each setter method takes `self` by value (not `&mut self`), which enables method chaining. The `build` method can enforce invariants and return a `Result` if required fields are missing.
 
-### Iterator Chains
+The `derive_builder` crate can generate builder implementations automatically, but writing them by hand is straightforward and avoids a proc-macro dependency.
 
-Transform data without intermediate allocations:
+---
 
-```rust
-let result: Vec<_> = data
-    .iter()
-    .filter(|x| x.is_valid())
-    .map(|x| x.transform())
-    .take(10)
-    .collect();
+## 6. Newtype Pattern
 
-// Lazy evaluation - no work done until collect()
-let lazy_iter = (0..)
-    .map(|x| x * x)
-    .filter(|x| x % 2 == 0)
-    .take(5);
-```
-
-### Closures and Higher-Order Functions
+Wrap a primitive type in a single-field struct to give it a distinct type. The compiler prevents accidental mixing of values that share the same underlying representation.
 
 ```rust
-fn retry<F, T, E>(mut f: F, max_attempts: u32) -> Result<T, E>
-where
-    F: FnMut() -> Result<T, E>,
-{
-    for _ in 0..max_attempts - 1 {
-        if let Ok(result) = f() {
-            return Ok(result);
-        }
+struct Kilometers(f64);
+struct Miles(f64);
+struct Liters(f64);
+struct KmPerLiter(f64);
+
+impl Kilometers {
+    fn to_miles(&self) -> Miles {
+        Miles(self.0 * 0.621371)
     }
-    f()  // Last attempt
 }
 
-// Usage with closure
-let result = retry(|| risky_operation(), 3)?;
-```
-
-## Smart Pointer Patterns
-
-### Box for Heap Allocation
-
-```rust
-// Recursive types need Box
-enum List<T> {
-    Node(T, Box<List<T>>),
-    Nil,
+fn calculate_fuel_efficiency(distance: Kilometers, fuel: Liters) -> KmPerLiter {
+    KmPerLiter(distance.0 / fuel.0)
 }
 
-// Trait objects need Box
-let drawable: Box<dyn Draw> = Box::new(Circle::new());
+fn main() {
+    let dist = Kilometers(100.0);
+    let fuel = Liters(8.5);
+    let efficiency = calculate_fuel_efficiency(dist, fuel);
+    println!("{:.1} km/L", efficiency.0);
+}
 ```
 
-### Rc for Shared Ownership (Single-threaded)
+Calling `calculate_fuel_efficiency(fuel, dist)` with swapped arguments is a compile-time error, not a silent bug. The newtype has zero runtime cost -- the wrapper is erased during compilation.
 
-```rust
-use std::rc::Rc;
+Newtypes are also useful for implementing external traits on external types (the orphan rule requires that either the trait or the type is defined in the current crate).
 
-let data = Rc::new(vec![1, 2, 3]);
-let data2 = Rc::clone(&data);
+---
 
-println!("Reference count: {}", Rc::strong_count(&data));
-```
+## 7. Type-State Pattern
 
-## State Machine Pattern
-
-Model state transitions at compile time:
+Encode state transitions in the type system so that invalid sequences are compile-time errors. The key ingredient is `PhantomData<State>` — a zero-sized marker type that exists only at compile time and tells the compiler which state the struct is in, without using any runtime memory.
 
 ```rust
 struct Draft;
@@ -465,21 +347,21 @@ struct Published;
 
 struct Post<State> {
     content: String,
-    state: State,
+    _state: std::marker::PhantomData<State>,
 }
 
 impl Post<Draft> {
-    fn new() -> Self {
+    fn new(content: impl Into<String>) -> Self {
         Post {
-            content: String::new(),
-            state: Draft,
+            content: content.into(),
+            _state: std::marker::PhantomData,
         }
     }
 
     fn submit(self) -> Post<PendingReview> {
         Post {
             content: self.content,
-            state: PendingReview,
+            _state: std::marker::PhantomData,
         }
     }
 }
@@ -488,14 +370,14 @@ impl Post<PendingReview> {
     fn approve(self) -> Post<Published> {
         Post {
             content: self.content,
-            state: Published,
+            _state: std::marker::PhantomData,
         }
     }
 
     fn reject(self) -> Post<Draft> {
         Post {
             content: self.content,
-            state: Draft,
+            _state: std::marker::PhantomData,
         }
     }
 }
@@ -506,105 +388,168 @@ impl Post<Published> {
     }
 }
 
-// Usage enforces correct state transitions at compile time
-let post = Post::new()
-    .submit()
-    .approve();
-println!("{}", post.content());
+fn main() {
+    let post = Post::new("Hello, world!")
+        .submit()
+        .approve();
+
+    println!("{}", post.content());
+
+    // This would not compile -- cannot call .content() on a Draft:
+    // let draft = Post::new("draft");
+    // println!("{}", draft.content());
+}
 ```
 
-## RAII and Drop Pattern
+Each state is a zero-sized type. The generic parameter `State` controls which methods are available. Calling `.content()` on a `Post<Draft>` is a compile-time error -- the method simply does not exist for that type. The state types carry no runtime data, so the pattern has zero cost.
 
-Automatic resource management:
+This pattern appears in libraries like `hyper` (request builders) and `tower` (service layers).
 
-```rust
+---
+
+## 8. RAII and Drop Pattern
+
+Rust's `Drop` trait provides deterministic resource cleanup. When a value goes out of scope, its `drop` method runs automatically. This is Rust's version of C++ RAII -- but enforced by the ownership system, so there is no risk of use-after-free.
+
+```rust,ignore
+use std::path::PathBuf;
+
 struct TempFile {
     path: PathBuf,
 }
 
 impl TempFile {
-    fn new(content: &str) -> std::io::Result<Self> {
-        let path = std::env::temp_dir().join(format!("temp_{}.txt", uuid::Uuid::new_v4()));
+    fn new(name: &str, content: &str) -> std::io::Result<Self> {
+        let path = std::env::temp_dir().join(name);
         std::fs::write(&path, content)?;
         Ok(TempFile { path })
+    }
+
+    fn path(&self) -> &std::path::Path {
+        &self.path
     }
 }
 
 impl Drop for TempFile {
     fn drop(&mut self) {
-        let _ = std::fs::remove_file(&self.path);  // Clean up automatically
+        let _ = std::fs::remove_file(&self.path);
     }
 }
-
-// File automatically deleted when temp_file goes out of scope
-{
-    let temp_file = TempFile::new("temporary data")?;
-    // Use temp_file
-}  // Deleted here
 ```
 
-## Performance Patterns
+Usage:
 
-### Zero-Copy Operations
+```rust,ignore
+fn process() -> std::io::Result<()> {
+    let temp = TempFile::new("work.tmp", "temporary data")?;
+    // ... use temp.path() ...
+    Ok(())
+}   // temp is dropped here -- file is deleted automatically
+```
+
+The file is cleaned up whether the function returns normally or propagates an error via `?`. This is the same guarantee that C++ destructors provide, but Rust additionally prevents accessing `temp` after it has been moved or dropped.
+
+Common uses of `Drop` in practice: closing file handles, releasing locks, flushing buffers, cleaning up temporary directories, and disconnecting network connections.
+
+---
+
+## 9. Performance Patterns
+
+### Zero-Copy with Borrowing
+
+Passing `&[u8]` or `&str` instead of `Vec<u8>` or `String` avoids allocations when the caller already owns the data.
 
 ```rust
-// Borrowing instead of cloning
-fn process(data: &[u8]) {
-    // Work with borrowed data
+fn count_words(text: &str) -> usize {
+    text.split_whitespace().count()
 }
 
-// String slicing without allocation
-let s = "hello world";
-let hello = &s[0..5];  // No allocation
+fn main() {
+    let owned = String::from("hello world from Rust");
+    let count = count_words(&owned);  // borrows, no allocation
+    println!("{count} words");
+}
+```
 
-// Using Cow for conditional cloning
+### `Cow` -- Clone on Write
+
+`Cow<'a, T>` holds either a borrowed reference or an owned value. It only allocates when modification is needed.
+
+```rust
 use std::borrow::Cow;
 
-fn normalize<'a>(input: &'a str) -> Cow<'a, str> {
+fn normalize_whitespace<'a>(input: &'a str) -> Cow<'a, str> {
     if input.contains('\n') {
         Cow::Owned(input.replace('\n', " "))
     } else {
-        Cow::Borrowed(input)  // No allocation if unchanged
+        Cow::Borrowed(input)
     }
+}
+
+fn main() {
+    let clean = "no newlines here";
+    let dirty = "has\nnewlines\nin it";
+
+    let result1 = normalize_whitespace(clean);   // Borrowed -- no allocation
+    let result2 = normalize_whitespace(dirty);   // Owned -- allocated
+
+    println!("{result1}");
+    println!("{result2}");
 }
 ```
 
+`Cow` is particularly useful in functions where most inputs pass through unchanged but some need transformation. You avoid allocating in the common case while still supporting the uncommon one.
+
 ### Memory Layout Control
 
+The `#[repr(C)]` attribute gives a struct C-compatible memory layout, which is required for FFI and sometimes useful for memory-mapped data.
+
 ```rust
-#[repr(C)]  // C-compatible layout
+#[repr(C)]
 struct NetworkPacket {
     header: [u8; 4],
     length: u32,
     payload: [u8; 1024],
 }
 
-#[repr(C, packed)]  // Remove padding
-struct CompactData {
-    a: u8,
-    b: u32,
-    c: u8,
+fn main() {
+    println!("Packet size: {} bytes", std::mem::size_of::<NetworkPacket>());
 }
 ```
 
-## Best Practices
+Without `#[repr(C)]`, the Rust compiler is free to reorder and pad struct fields for optimal alignment. With it, fields appear in declaration order with C-standard padding rules.
 
-1. **Prefer borrowing over owning** when possible
-2. **Use iterators** instead of indexing loops
-3. **Make invalid states unrepresentable** using the type system
-4. **Fail fast** with Result instead of panicking
-5. **Document ownership** in complex APIs
-6. **Use clippy** to catch unidiomatic patterns
-7. **Prefer composition** over inheritance-like patterns
-8. **Be explicit** about type conversions and error handling
+---
+
+## 10. Best Practices
+
+1. **Keep `main.rs` thin** -- parse arguments, call into the library, print errors. Nothing else.
+2. **Define a crate-level `Error` and `Result<T>`** -- propagation with `?` should work across your entire crate without manual conversions.
+3. **Use traits to abstract behavior** -- this enables testing with mocks and swapping implementations via feature flags.
+4. **Gate optional functionality behind feature flags** -- compile only what is needed.
+5. **Make invalid states unrepresentable** -- use the type system (enums, newtypes, type-state) instead of runtime checks.
+6. **Prefer borrowing over cloning** -- pass `&str` and `&[u8]` where ownership is not needed.
+7. **Use `Cow` when most inputs pass through unchanged** -- avoid allocations in the common path.
+8. **Run clippy** -- it catches unidiomatic patterns and common mistakes. Treat warnings as errors in CI.
+9. **Start flat, nest when earned** -- do not create deep module hierarchies before they are needed.
+
+---
 
 ## Summary
 
-Rust patterns emphasize:
-- **Ownership** for automatic memory management
-- **Option/Result** for explicit error handling
-- **Traits** for polymorphism without inheritance
-- **Zero-cost abstractions** for performance
-- **Type safety** to catch errors at compile time
+This chapter covered ten patterns that appear in real Rust projects:
 
-These patterns work together to create systems that are both safe and fast, catching entire categories of bugs at compile time while maintaining C++ level performance.
+| Pattern | Purpose |
+|---------|---------|
+| Thin `main.rs` | Testability and reuse via library-first design |
+| Trait-based backends | Swappable implementations, mockable in tests |
+| Error enum + `Result<T>` alias | Unified error handling with `?` propagation |
+| Feature-gated modules | Conditional compilation of entire subsystems |
+| Builder | Flexible construction with validation |
+| Newtype | Type-safe wrappers over primitives |
+| Type-State | Compile-time enforcement of state transitions |
+| RAII / Drop | Deterministic resource cleanup |
+| Zero-copy / Cow | Avoid unnecessary allocations |
+| Best practices | Guidelines for idiomatic Rust project structure |
+
+The first four patterns are applied directly in Day 4 when building the imgforge project. The remaining patterns are general techniques that appear across the Rust ecosystem.

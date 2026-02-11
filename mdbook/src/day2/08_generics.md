@@ -119,6 +119,32 @@ where
 }
 ```
 
+## `impl Trait` Shorthand
+
+Rust provides a shorthand for trait bounds in both argument and return position:
+
+```rust
+use std::fmt::Display;
+
+// Instead of: fn print_it<T: Display>(value: T)
+fn print_it(value: impl Display) {
+    println!("{}", value);
+}
+
+// Return position: caller doesn't know the concrete type
+fn make_greeting(name: &str) -> impl Display {
+    format!("Hello, {}!", name)
+}
+
+fn main() {
+    print_it(42);
+    print_it("hello");
+    println!("{}", make_greeting("world"));
+}
+```
+
+**Argument position** (`value: impl Display`) is syntactic sugar for `<T: Display>`. **Return position** (`-> impl Display`) means "I return some type that implements `Display`, but I'm not telling you which one." This is commonly used to return closures or complex iterator chains without spelling out the full type.
+
 ## Where Clauses
 
 Where clauses make complex bounds more readable:

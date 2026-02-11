@@ -410,10 +410,8 @@ mod tests {
         let result = divide(10.0, 0.0);
         assert!(result.is_err());
         
-        match result {
-            Err(MathError::DivisionByZero) => (),
-            _ => panic!("Expected DivisionByZero error"),
-        }
+        // matches! is cleaner than match + panic! for variant checks
+        assert!(matches!(result, Err(MathError::DivisionByZero)));
     }
     
     #[test]

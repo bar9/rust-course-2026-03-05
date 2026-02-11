@@ -11,7 +11,7 @@ Macros enable code generation at compile time, reducing boilerplate and enabling
 - Generate code before type checking
 - Can create new syntax patterns
 
-```rust
+```rust,ignore
 // This macro call
 println!("Hello, {}!", "world");
 
@@ -79,7 +79,7 @@ macro_rules! debug_stmt {
     };
 }
 
-debug_stmt!(let x = 42;);
+debug_stmt!(let x = 42);
 ```
 
 #### 4. `expr` - Expressions
@@ -131,7 +131,7 @@ macro_rules! use_type {
     };
 }
 
-use_type!(std::collections::HashMap<String, i32>);
+use_type!(String);
 ```
 
 #### 8. `literal` - Literal values
@@ -156,7 +156,7 @@ macro_rules! capture_tokens {
     };
 }
 
-capture_tokens!(fn main() { println!("hello"); });
+capture_tokens!(hello world 1 + 2);
 ```
 
 #### 10. `pat` - Patterns
@@ -242,7 +242,7 @@ macro_rules! vec_shorthand {
     };
 }
 
-let v1 = vec_shorthand!();
+let v1: Vec<i32> = vec_shorthand!();
 let v2 = vec_shorthand![1, 2, 3];
 let v3 = vec_shorthand![1, 2, 3,]; // Trailing comma ok
 ```
@@ -272,60 +272,6 @@ macro_rules! sum {
 }
 
 let total = sum!(1, 2, 3, 4); // 10
-```
-
-## Advanced Macro Patterns
-
-### Incremental TT Munching
-
-```rust
-macro_rules! replace_expr {
-    ($_t:tt $sub:expr) => {$sub};
-}
-
-macro_rules! count_tts {
-    () => {0usize};
-    ($_head:tt $($tail:tt)*) => {1usize + count_tts!($($tail)*)};
-}
-
-let count = count_tts!(a b c d); // 4
-```
-
-### Push-down Accumulation
-
-```rust
-macro_rules! reverse {
-    ([] $($reversed:tt)*) => {
-        ($($reversed)*)
-    };
-    ([$head:tt $($tail:tt)*] $($reversed:tt)*) => {
-        reverse!([$($tail)*] $head $($reversed)*)
-    };
-}
-
-let rev = reverse!([1 2 3 4]); // (4 3 2 1)
-```
-
-### Internal Rules
-
-```rust
-macro_rules! my_macro {
-    // Public API
-    ($($input:expr),*) => {
-        my_macro!(@internal [$($input),*] [])
-    };
-
-    // Internal implementation
-    (@internal [] [$($result:expr),*]) => {
-        vec![$($result),*]
-    };
-
-    (@internal [$head:expr $(, $tail:expr)*] [$($result:expr),*]) => {
-        my_macro!(@internal [$($tail),*] [$($result,)* $head * 2])
-    };
-}
-
-let doubled = my_macro!(1, 2, 3); // vec![2, 4, 6]
 ```
 
 ## Hygienic Macros
@@ -363,7 +309,7 @@ create_and_use!(my_var); // Creates my_var in caller's scope
 
 ### Using `trace_macros!`
 
-```rust
+```rust,ignore
 #![feature(trace_macros)]
 
 trace_macros!(true);
@@ -373,7 +319,7 @@ trace_macros!(false);
 
 ### Using `log_syntax!`
 
-```rust
+```rust,ignore
 #![feature(log_syntax)]
 
 macro_rules! debug_macro {
@@ -415,7 +361,7 @@ proc-macro2 = "1.0"
 
 ### Custom Derive Macro Example
 
-```rust
+```rust,ignore
 // src/lib.rs
 use proc_macro::TokenStream;
 use quote::quote;
@@ -440,7 +386,7 @@ pub fn hello_macro_derive(input: TokenStream) -> TokenStream {
 
 Usage:
 
-```rust
+```rust,ignore
 trait HelloMacro {
     fn hello();
 }
@@ -453,10 +399,10 @@ MyStruct::hello(); // Prints: Hello from MyStruct!
 
 ### Attribute Macro Example
 
-```rust
+```rust,ignore
 #[proc_macro_attribute]
 pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
-    let mut item = parse_macro_input!(input as syn::ItemFn);
+    let item = parse_macro_input!(input as syn::ItemFn);
     let args = parse_macro_input!(args as syn::LitStr);
 
     // Modify function based on attribute arguments
@@ -469,7 +415,7 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
 Usage:
 
-```rust
+```rust,ignore
 #[route("/api/users")]
 async fn get_users() -> Response {
     // Handler implementation
@@ -478,7 +424,7 @@ async fn get_users() -> Response {
 
 ### Function-like Procedural Macro
 
-```rust
+```rust,ignore
 #[proc_macro]
 pub fn sql(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::LitStr);
@@ -491,135 +437,20 @@ pub fn sql(input: TokenStream) -> TokenStream {
 
 Usage:
 
-```rust
+```rust,ignore
 let query = sql!("SELECT * FROM users WHERE id = ?");
 ```
 
-## Real-World Examples
+### Derive Macros in Practice
 
-### Builder Pattern Macro
+You will encounter derive macros throughout the Day 4 exercise project. Understanding that they generate trait implementations from struct/enum definitions is the key concept — you rarely need to write your own proc macros.
 
-```rust
-macro_rules! builder {
-    ($name:ident { $($field:ident: $type:ty),* }) => {
-        pub struct $name {
-            $(pub $field: $type,)*
-        }
+Common derive macros in the Rust ecosystem:
+- `serde`: `#[derive(Serialize, Deserialize)]` — automatic JSON/TOML/etc. serialization (covered in Chapter 17)
+- `clap`: `#[derive(Parser)]` — command-line argument parsing from struct fields
+- `derive_more`: `#[derive(From, Display)]` — common trait implementations without boilerplate
 
-        paste::paste! {
-            pub struct [<$name Builder>] {
-                $($field: Option<$type>,)*
-            }
-
-            impl [<$name Builder>] {
-                pub fn new() -> Self {
-                    Self {
-                        $($field: None,)*
-                    }
-                }
-
-                $(
-                    pub fn $field(mut self, value: $type) -> Self {
-                        self.$field = Some(value);
-                        self
-                    }
-                )*
-
-                pub fn build(self) -> Result<$name, &'static str> {
-                    Ok($name {
-                        $($field: self.$field.ok_or(concat!("Missing field: ", stringify!($field)))?,)*
-                    })
-                }
-            }
-        }
-    };
-}
-
-builder!(Person {
-    name: String,
-    age: u32,
-    email: String
-});
-
-let person = PersonBuilder::new()
-    .name("Alice".to_string())
-    .age(30)
-    .email("alice@example.com".to_string())
-    .build()?;
-```
-
-### Test Generator Macro
-
-```rust
-macro_rules! test_cases {
-    ($($name:ident: $input:expr => $expected:expr),*) => {
-        $(
-            #[test]
-            fn $name() {
-                let result = process($input);
-                assert_eq!(result, $expected);
-            }
-        )*
-    };
-}
-
-test_cases! {
-    test_zero: 0 => 0,
-    test_one: 1 => 1,
-    test_negative: -5 => 5,
-    test_large: 1000 => 1000
-}
-```
-
-### DSL for State Machines
-
-```rust
-macro_rules! state_machine {
-    (
-        $name:ident {
-            states: [$($state:ident),*],
-            events: [$($event:ident),*],
-            transitions: [
-                $($from:ident + $on:ident => $to:ident),*
-            ]
-        }
-    ) => {
-        #[derive(Debug, Clone, Copy, PartialEq)]
-        enum $name {
-            $($state,)*
-        }
-
-        #[derive(Debug)]
-        enum Event {
-            $($event,)*
-        }
-
-        impl $name {
-            fn transition(self, event: Event) -> Option<Self> {
-                match (self, event) {
-                    $(
-                        (Self::$from, Event::$on) => Some(Self::$to),
-                    )*
-                    _ => None
-                }
-            }
-        }
-    };
-}
-
-state_machine! {
-    DoorState {
-        states: [Open, Closed, Locked],
-        events: [OpenDoor, CloseDoor, LockDoor, UnlockDoor],
-        transitions: [
-            Closed + OpenDoor => Open,
-            Open + CloseDoor => Closed,
-            Closed + LockDoor => Locked,
-            Locked + UnlockDoor => Closed
-        ]
-    }
-}
-```
+These macros follow the same pattern: annotate your type with `#[derive(MacroName)]`, and the proc macro generates the trait implementation at compile time.
 
 ## Common Macro Patterns
 
@@ -636,7 +467,7 @@ macro_rules! with_callback {
 
 let data = with_callback!(
     vec![1, 2, 3],
-    |v| println!("Created vector with {} elements", v.len())
+    |v: &Vec<i32>| println!("Created vector with {} elements", v.len())
 );
 ```
 

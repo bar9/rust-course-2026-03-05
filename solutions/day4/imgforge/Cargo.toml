@@ -1,0 +1,40 @@
+[package]
+name = "imgforge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Image processing
+image = "0.25"
+
+# Error handling
+derive_more = { version = "1", features = ["from", "display"] }
+
+# Web server
+axum = { version = "0.8", features = ["multipart"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Concurrency / job tracking
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Optional FFI acceleration
+turbojpeg = { version = "1", optional = true }
+
+# Optional GUI
+eframe = { version = "0.30", optional = true }
+egui = { version = "0.30", optional = true }
+
+[features]
+default = []
+turbojpeg = ["dep:turbojpeg"]
+gui = ["dep:eframe", "dep:egui"]
+
+[dev-dependencies]
+reqwest = { version = "0.12", features = ["multipart"] }
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"

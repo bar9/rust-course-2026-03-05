@@ -23,19 +23,19 @@
 # Day 3: Building programs & advanced topics
 
 - [Cargo & Dependency Management](./day3/13_cargo.md)
-- [Code Coverage with CodeCov](./day3/14_codecov.md)
+- [Testing in Rust](./day3/14_testing.md)
 - [Macros & Code Generation](./day3/15_macros.md)
 - [Unsafe Rust & FFI with Bindgen](./day3/16_unsafe_ffi.md)
-- [Embedded HAL - Hardware Register Access & Volatile Memory](./day3/17_embedded_hal.md)
+- [Serde & Serialization](./day3/17_serde.md)
 - [Async and Concurrency](./day3/18_async_concurrency.md)
-- [Rust Patterns](./day3/19_rust_patterns.md)
+- [Rust Design Patterns](./day3/19_rust_patterns.md)
 
-# Day 4: ESP32-C3 Temperature Monitor - From Sensor to System
+# Day 4: imgforge — Building an Image Processing Service
 
-- [Hardware Hello - ESP32-C3 Basics](day4/20_hardware_hello.md)
-- [Embedded Foundations - no_std from the Start](day4/21_embedded_foundations.md)
-- [Testing Embedded Code](day4/22_testing_embedded.md)
-- [Data & Communication](day4/23_data_communication.md)
-- [Integration & Deployment](day4/24_integration_deployment.md)
-- [Performance Optimization & Power Management](day4/25_complete_system.md)
+- [imgforge CLI: Project Setup & Image Processing](day4/20_imgforge_cli.md)
+- [FFI Acceleration: TurboJPEG Feature Flag](day4/21_ffi_acceleration.md)
+- [Async Web Server: Axum HTTP API](day4/22_async_web_server.md)
+- [Concurrency: Thread Pool & Shared State](day4/23_concurrency.md)
+- [Testing & Polish: Coverage & Batch Mode](day4/24_testing_polish.md)
+- [(Optional) Desktop GUI with egui](day4/25_optional_gui.md)
 

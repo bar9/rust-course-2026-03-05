@@ -17,7 +17,7 @@ Rust provides two main models for concurrent programming, each with distinct adv
 | **Memory overhead** | ~2MB per thread | ~2KB per task |
 | **Scheduling** | OS kernel | User-space runtime |
 | **Blocking operations** | Normal | Must use async variants |
-| **Ecosystem maturity** | Complete | Growing rapidly |
+| **Ecosystem maturity** | Complete | Mature (tokio, axum, etc.) |
 | **Learning curve** | Moderate | Steeper initially |
 
 ## Part 1: Thread-Based Concurrency
@@ -26,7 +26,7 @@ Rust provides two main models for concurrent programming, each with distinct adv
 
 Rust prevents data races at compile time through its ownership system:
 
-```rust
+```rust,ignore
 use std::thread;
 
 // This won't compile - Rust prevents the data race
@@ -45,7 +45,7 @@ fn broken_example() {
 
 `Arc<T>` (Atomic Reference Counting) enables multiple threads to share ownership of the same data:
 
-```rust
+```rust,ignore
 use std::sync::Arc;
 use std::thread;
 
@@ -77,7 +77,7 @@ Key properties of Arc:
 
 `Mutex<T>` provides mutual exclusion for mutable data:
 
-```rust
+```rust,ignore
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -109,7 +109,7 @@ fn safe_shared_counter() {
 
 When reads significantly outnumber writes, `RwLock<T>` provides better performance:
 
-```rust
+```rust,ignore
 use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
@@ -145,7 +145,7 @@ fn reader_writer_pattern() {
 
 Channels avoid shared state entirely through message passing:
 
-```rust
+```rust,ignore
 use std::sync::mpsc;
 use std::thread;
 
@@ -187,7 +187,7 @@ fn fan_in_pattern() {
 
 #### Worker Pool
 
-```rust
+```rust,ignore
 use std::sync::{Arc, Mutex, mpsc};
 use std::thread;
 
@@ -238,7 +238,7 @@ impl ThreadPool {
 
 Futures represent values that will be available at some point:
 
-```rust
+```rust,ignore
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -259,7 +259,7 @@ async fn simple_async() -> i32 {
 
 Tokio provides a production-ready async runtime:
 
-```rust
+```rust,ignore
 use tokio::time::{sleep, Duration};
 
 #[tokio::main]
@@ -294,7 +294,7 @@ fn runtime_options() {
 
 Multiple futures can run concurrently without threads:
 
-```rust
+```rust,ignore
 use tokio::time::{sleep, Duration};
 
 async fn concurrent_operations() {
@@ -322,7 +322,7 @@ async fn operation(name: &str, ms: u64) {
 
 Tasks are the async equivalent of threads:
 
-```rust
+```rust,ignore
 use tokio::task;
 
 async fn spawn_tasks() {
@@ -348,7 +348,7 @@ async fn spawn_tasks() {
 
 The `select!` macro enables complex control flow:
 
-```rust
+```rust,ignore
 use tokio::time::{sleep, Duration, timeout};
 
 async fn select_example() {
@@ -379,7 +379,7 @@ async fn async_operation() -> String {
 
 Async excels at I/O-bound work:
 
-```rust
+```rust,ignore
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
@@ -430,7 +430,7 @@ async fn tcp_server() -> Result<(), Box<dyn std::error::Error>> {
 
 Error handling follows the same patterns with async-specific considerations:
 
-```rust
+```rust,ignore
 use std::time::Duration;
 use tokio::time::timeout;
 
@@ -484,7 +484,7 @@ Threads are optimal for:
 - **Simple concurrency**: Independent units of work
 
 Example of CPU-bound work better suited for threads:
-```rust
+```rust,ignore
 use std::thread;
 
 fn parallel_computation(data: Vec<u64>) -> u64 {
@@ -514,7 +514,7 @@ Async is optimal for:
 - **Coordinated I/O**: Complex workflows with dependencies
 
 Example of I/O-bound work better suited for async:
-```rust
+```rust,ignore
 async fn fetch_many_urls(urls: Vec<String>) -> Vec<Result<String, reqwest::Error>> {
     let futures = urls.into_iter().map(|url| {
         async move {
@@ -526,11 +526,11 @@ async fn fetch_many_urls(urls: Vec<String>) -> Vec<Result<String, reqwest::Error
 }
 ```
 
-### Hybrid Approaches
+### Hybrid Approaches: `spawn_blocking`
 
-Sometimes combining both models is optimal:
+Real applications often combine async I/O with CPU-bound work. The key tool is `tokio::task::spawn_blocking`, which moves a closure onto a dedicated thread pool separate from Tokio's async worker threads. This is the pattern used in Day 4 to run image transforms without blocking the HTTP server.
 
-```rust
+```rust,ignore
 use tokio::task;
 
 async fn hybrid_processing(data: Vec<Data>) -> Vec<Result<Processed, Error>> {
@@ -550,11 +550,12 @@ async fn hybrid_processing(data: Vec<Data>) -> Vec<Result<Processed, Error>> {
     // Await all CPU tasks
     let mut results = vec![];
     for handle in handles {
-        results.extend(handle.await?);
+        results.extend(handle.await.expect("task panicked"));
     }
 
     // Async I/O for results
-    store_results_async(results).await
+    store_results_async(&results).await;
+    results
 }
 ```
 
@@ -562,7 +563,7 @@ async fn hybrid_processing(data: Vec<Data>) -> Vec<Result<Processed, Error>> {
 
 ### Blocking in Async Context
 
-```rust
+```rust,ignore
 // BAD: Blocks the async runtime
 async fn bad_example() {
     std::thread::sleep(Duration::from_secs(1));  // Blocks executor
@@ -584,7 +585,9 @@ async fn blocking_work() {
 
 ### Async Mutex vs Sync Mutex
 
-```rust
+**Rule of thumb**: use `std::sync::Mutex` when the critical section is short and never crosses an `.await` point. Use `tokio::sync::Mutex` only when you need to hold the lock across an `.await`. The Tokio documentation itself recommends `std::sync::Mutex` for brief operations — it's faster for sync-only access. In Day 4, the imgforge server uses `Arc<std::sync::Mutex<HashMap>>` for job tracking because lock duration is microseconds.
+
+```rust,ignore
 // Use tokio::sync::Mutex for async contexts
 use tokio::sync::Mutex as AsyncMutex;
 use std::sync::Mutex as SyncMutex;
@@ -638,6 +641,80 @@ fn sync_mutex_in_async() {
 4. **Profile and measure**: Don't assume, benchmark your specific use case
 5. **Handle errors properly**: Both models require careful error handling
 6. **Consider the ecosystem**: Check library support for your chosen model
+
+## Exercise: Parallel `WordCounter`
+
+Build a thread-safe word frequency counter that processes text chunks in parallel. This exercise focuses on **Part 1** of the chapter (threads, `Arc<Mutex<>>`, channels) — no async runtime needed.
+
+### Setup
+
+```bash
+cp -r solutions/day3/18_concurrency/ mysolutions/day3/18_concurrency/
+cd mysolutions/day3/18_concurrency
+cargo test          # all tests should fail initially
+```
+
+### What you implement
+
+```rust,ignore
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+pub struct WordCounter {
+    counts: Arc<Mutex<HashMap<String, usize>>>,
+}
+
+impl WordCounter {
+    pub fn new() -> Self;
+
+    /// Count words in a single string (single-threaded).
+    pub fn count(&self, text: &str);
+
+    /// Count words across multiple texts in parallel (one thread per text).
+    pub fn count_parallel(&self, texts: &[&str]);
+
+    /// Get the frequency of a specific word (case-insensitive).
+    pub fn get(&self, word: &str) -> usize;
+
+    /// Get the top N most frequent words, ordered by count descending.
+    pub fn top_n(&self, n: usize) -> Vec<(String, usize)>;
+
+    /// Merge another WordCounter's counts into this one.
+    pub fn merge(&self, other: &WordCounter);
+
+    /// Reset all counts.
+    pub fn reset(&self);
+}
+
+/// Channel-based variant: count words using mpsc channels.
+pub fn count_with_channel(texts: &[&str]) -> HashMap<String, usize>;
+```
+
+### What the tests cover
+
+| # | Test | Concept |
+|---|------|---------|
+| 1 | `count_single_text` | Basic `Mutex` locking |
+| 2 | `count_ignores_case_and_punctuation` | Word normalisation |
+| 3 | `count_empty_input` | Edge case |
+| 4 | `parallel_matches_sequential` | `thread::spawn` + `Arc<Mutex<>>` |
+| 5 | `top_n_returns_most_frequent` | Sorting by frequency |
+| 6 | `top_n_alphabetical_on_tie` | Tie-breaking |
+| 7 | `merge_combines_counts` | Multi-lock coordination |
+| 8 | `reset_clears_all_counts` | `HashMap::clear` under lock |
+| 9 | `channel_counting_matches_sequential` | `mpsc::channel` |
+| 10 | `concurrent_access_is_safe` | `Arc<WordCounter>` shared across 10 threads |
+
+### Tips
+
+- Normalise words to lowercase and strip leading/trailing ASCII punctuation.
+- In `count_parallel`, build a local `HashMap` per thread first, then merge into the shared map under a single lock — this minimises lock contention.
+- For `count_with_channel`, remember to `drop(tx)` after spawning all threads so the `rx` iterator terminates.
+- `top_n` should break ties alphabetically (ascending) when counts are equal.
+
+### Solution
+
+The reference solution is in `solutions/day3/18_concurrency/src/lib.rs`.
 
 ## Summary
 
