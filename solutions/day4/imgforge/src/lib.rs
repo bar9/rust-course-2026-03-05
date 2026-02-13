@@ -11,7 +11,7 @@ pub use error::{Error, Result};
 pub use config::Config;
 pub use transform::{Transform, Operation};
 
-use config::{Command, CliOperation};
+use config::{Command, CliOperation, BatchOperation};
 
 /// Main entry point: dispatch CLI, batch, or server mode.
 pub fn run(config: Config) -> Result<()> {
@@ -60,15 +60,15 @@ fn run_cli(operation: CliOperation) -> Result<()> {
 fn run_batch(
     input_dir: &std::path::Path,
     output_dir: &std::path::Path,
-    operation: CliOperation,
+    operation: BatchOperation,
 ) -> Result<()> {
     let backend = transform::default_backend();
     println!("Using backend: {}", backend.name());
 
     let op = match operation {
-        CliOperation::Resize { width, height, .. } => Operation::Resize { width, height },
-        CliOperation::Grayscale { .. } => Operation::Grayscale,
-        CliOperation::Blur { sigma, .. } => Operation::Blur { sigma },
+        BatchOperation::Resize { width, height } => Operation::Resize { width, height },
+        BatchOperation::Grayscale => Operation::Grayscale,
+        BatchOperation::Blur { sigma } => Operation::Blur { sigma },
     };
 
     let result = batch::process_directory(backend.as_ref(), input_dir, output_dir, &op)?;

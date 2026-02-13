@@ -24,7 +24,7 @@ pub enum Command {
         #[arg(long)]
         output_dir: PathBuf,
         #[command(subcommand)]
-        operation: CliOperation,
+        operation: BatchOperation,
     },
     /// Start the HTTP server
     Serve {
@@ -65,5 +65,26 @@ pub enum CliOperation {
         input: PathBuf,
         /// Output file
         output: PathBuf,
+    },
+}
+
+#[derive(Subcommand, Debug, Clone)]
+pub enum BatchOperation {
+    /// Resize images
+    Resize {
+        /// Target width
+        #[arg(long)]
+        width: u32,
+        /// Target height
+        #[arg(long)]
+        height: u32,
+    },
+    /// Convert to grayscale
+    Grayscale,
+    /// Apply Gaussian blur
+    Blur {
+        /// Blur sigma (strength)
+        #[arg(long, default_value = "3.0")]
+        sigma: f32,
     },
 }
