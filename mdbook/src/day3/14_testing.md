@@ -282,11 +282,16 @@ Doc tests serve double duty: they verify your examples are correct **and** provi
 # Run all tests (unit, integration, doc)
 cargo test
 
-# Run only unit tests (lib + bin)
+# Run only unit tests (lib)
 cargo test --lib
+
+# Run only unit tests (bin)
+cargo test --bins
+cargo test --bin hello
 
 # Run only integration tests
 cargo test --test basic_operations
+cargo test --test '*'
 
 # Run only doc tests
 cargo test --doc
