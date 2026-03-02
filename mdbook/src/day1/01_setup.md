@@ -16,6 +16,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 #### On Windows:
 Download and run the installer from [rustup.rs](https://rustup.rs/)
 
+Rust on Windows supports two ABIs: **MSVC** and **GNU**. The `rustup` installer defaults to MSVC (`x86_64-pc-windows-msvc`), which is the [recommended choice](https://rust-lang.github.io/rustup/installation/windows.html) for most purposes. It requires the **Visual Studio C++ Build Tools** — the installer will offer to set these up for you. When prompted, select the **"Desktop development with C++"** workload.
+
+> **Do not switch to the GNU toolchain** (`x86_64-pc-windows-gnu`) unless you specifically need MinGW/MSYS2 interop. The GNU target requires a full MSYS2/MinGW installation on your `PATH`; without it, builds will fail with errors such as `error calling dlltool 'dlltool.exe': program not found`.
+
 After installation, verify:
 ```bash
 rustc --version
@@ -160,7 +164,7 @@ cargo new --lib day1_library
 | "rustc not found" | Restart terminal after installation |
 | Slow compilation | Enable sccache: `cargo install sccache` |
 | Can't debug | Zed has built-in debugging support |
-| Windows linker errors | Install Visual Studio Build Tools |
+| Windows linker errors | Ensure the MSVC toolchain is active (`rustup default stable-x86_64-pc-windows-msvc`) and Visual Studio C++ Build Tools are installed — see the [Windows note above](#on-windows) |
 
 ## Exercises
 

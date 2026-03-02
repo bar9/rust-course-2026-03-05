@@ -19,6 +19,8 @@ If there are any questions or difficulties during the installation please don't 
 ## Rust
 Install Rust using rustup (Rust's official installer)
 - Visit [rust-lang.org](https://rust-lang.org/tools/install) and follow the installation instructions for your operating system.
+- **Windows:** Rust requires the **Visual Studio C++ Build Tools** for linking. The `rustup` installer will offer to set these up — when prompted, select the **"Desktop development with C++"** workload. Make sure the default toolchain is set to **MSVC** (the default), not GNU. You can verify with `rustup show`. See [Troubleshooting](#windows-toolchain) below if you run into linker errors.
+- **Linux:** A C linker is required. Install build essentials if not already present: `sudo apt install build-essential` (Ubuntu/Debian) or equivalent.
 - Verify installation with: `rustc --version` and `cargo --version`
 
 Recommended: Install rust-analyzer for a better development experience:
@@ -60,9 +62,21 @@ You should see "Hello, world!" printed to your terminal.
 ## Troubleshooting
 If you encounter any issues:
 
-### Rust Installation Notes
-- On Linux, you will need a C linker (and optionally a C compiler for crates with native code). Install build essentials if not already present: `sudo apt install build-essential` (Ubuntu/Debian) or equivalent for your distribution.
-- On Windows, the Visual Studio C++ Build Tools are required by default, as Rust's default toolchain uses the MSVC linker. The rustup installer will guide you through this.
+### <a name="windows-toolchain"></a> Windows Toolchain
+
+Rust on Windows supports two ABIs: **MSVC** (default, recommended) and **GNU**. If your toolchain is set to `x86_64-pc-windows-gnu` and you do not have MSYS2/MinGW installed, builds will fail with errors like:
+
+```
+error: error calling dlltool 'dlltool.exe': program not found
+```
+
+**Fix:** Install the [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (select "Desktop development with C++") and switch to the MSVC toolchain:
+
+```bash
+rustup default stable-x86_64-pc-windows-msvc
+```
+
+See the [rustup documentation on Windows](https://rust-lang.github.io/rustup/installation/windows.html) for details.
 
 ### Cargo Issues
 - Try clearing the cargo cache: `cargo clean`
