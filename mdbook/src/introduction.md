@@ -4,9 +4,9 @@ This course is targeted at developers experienced in other procedural or object-
 * Day 1: Rust foundations and the concept of ownership
 * Day 2: Type system and error handling
 * Day 3: Building programs & advanced topics
-* Day 4: imgforge — hands-on image processing service
+* Day 4: ESP32-C3 embedded systems — hands-on hardware programming
 
-Each day is a mix of theory and exercises. Days 1 to 3 feature exercises in a std environment (building CLI applications on desktop). Day 4 builds an incremental image processing service (CLI, web server, FFI acceleration) applying the theory from Day 3.
+Each day is a mix of theory and exercises. Days 1 to 3 feature exercises in a std environment (building CLI applications on desktop). Day 4 applies the theory from Day 3 to real hardware: building an embedded temperature monitoring system on an ESP32-C3 microcontroller using `no_std` Rust.
 
 # This repository
 Contains the course slides/script as an mdbook and solutions to the exercises in the `solutions` directory. Will be updated before and during the course.
@@ -78,31 +78,22 @@ rm -rf hello-rust
 
 If you can complete all these steps successfully, your environment is ready for the first two days of the Rust course!
 
-# Additional Setup for Day 4 — imgforge
+# Additional Setup for Day 4 — ESP32-C3 Embedded
 
-Day 4 builds an image processing service. The standard Rust toolchain from Days 1-3 is sufficient. No additional setup is strictly required.
-
-## Optional: TurboJPEG System Library
-
-Chapter 21 demonstrates FFI acceleration using TurboJPEG. This is **optional** — the project works without it using the pure-Rust `image` crate.
-
-If you want to try the FFI chapter with the real TurboJPEG library:
+Day 4 targets ESP32-C3 hardware. The standard Rust toolchain from Days 1-3 is required, plus:
 
 ```bash
-# Ubuntu/Debian
-sudo apt install libturbojpeg0-dev
+# Add the RISC-V target for ESP32-C3
+rustup target add riscv32imc-unknown-none-elf
 
-# macOS
-brew install jpeg-turbo
-
-# Windows — the turbojpeg crate bundles pre-built binaries, no action needed
+# Install the flash/monitor tool
+cargo install cargo-espflash
 ```
 
-To verify (optional):
-```bash
-cargo build --features turbojpeg --manifest-path solutions/day4/imgforge/Cargo.toml
-```
+### Hardware Requirements
+- ESP32-C3 development board (e.g. ESP32-C3-DevKitM-1)
+- USB-C cable for programming and power
 
-If this fails, don't worry — the feature flag stays off and everything else works fine.
+No external sensors or components are needed — the exercises use the ESP32-C3's built-in temperature sensor.
 
 **→ Regularly pull updates to the repo**

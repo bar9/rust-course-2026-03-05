@@ -30,12 +30,12 @@
 - [Async and Concurrency](./day3/18_async_concurrency.md)
 - [Rust Design Patterns](./day3/19_rust_patterns.md)
 
-# Day 4: imgforge — Building an Image Processing Service
+# Day 4: ESP32-C3 Embedded Systems
 
-- [imgforge CLI: Project Setup & Image Processing](day4/20_imgforge_cli.md)
-- [FFI Acceleration: TurboJPEG Feature Flag](day4/21_ffi_acceleration.md)
-- [Async Web Server: Axum HTTP API](day4/22_async_web_server.md)
-- [Concurrency: Thread Pool & Shared State](day4/23_concurrency.md)
-- [Testing & Polish: Coverage & Batch Mode](day4/24_testing_polish.md)
-- [(Optional) Desktop GUI with egui](day4/25_optional_gui.md)
+- [Hardware Hello: ESP32-C3 Basics](day4/20_hardware_hello.md)
+- [Embedded Foundations: no_std](day4/21_embedded_foundations.md)
+- [Testing Embedded Code](day4/22_testing_embedded.md)
+- [Data & Communication](day4/23_data_communication.md)
+- [Integration & Deployment](day4/24_integration_deployment.md)
+- [Performance & Power Management](day4/25_complete_system.md)
 

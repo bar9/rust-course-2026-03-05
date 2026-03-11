@@ -360,9 +360,7 @@ fn main() {
 }
 ```
 
-## Part 5: Platform-Specific Code
-
-### Conditional Compilation
+## Part 5: Platform-Specific Code & Conditional Compilation
 
 ```rust
 #[cfg(target_os = "windows")]
@@ -393,34 +391,6 @@ mod linux {
             .map(|name| name.starts_with('.'))
             .unwrap_or(false)
     }
-}
-```
-
-### SIMD Operations
-
-```rust
-#[cfg(target_arch = "x86_64")]
-use std::arch::x86_64::*;
-
-#[cfg(target_arch = "x86_64")]
-#[target_feature(enable = "avx")]
-unsafe fn dot_product_simd(a: &[f32], b: &[f32]) -> f32 {
-    assert_eq!(a.len(), b.len());
-    assert!(a.len() % 8 == 0);
-
-    let mut sum = _mm256_setzero_ps();
-
-    for i in (0..a.len()).step_by(8) {
-        let a_vec = _mm256_loadu_ps(a.as_ptr().add(i));
-        let b_vec = _mm256_loadu_ps(b.as_ptr().add(i));
-        let prod = _mm256_mul_ps(a_vec, b_vec);
-        sum = _mm256_add_ps(sum, prod);
-    }
-
-    // Horizontal sum
-    let mut result = [0.0f32; 8];
-    _mm256_storeu_ps(result.as_mut_ptr(), sum);
-    result.iter().sum()
 }
 ```
 
@@ -474,81 +444,13 @@ impl Drop for SafeWrapper {
 
 ### Error Handling Across FFI
 
-```rust
-use std::ffi::{c_char, CStr, CString};
-use std::ptr;
+The key principle: convert Rust's `Result`/`panic` into C-compatible error codes at the FFI boundary. Common patterns:
 
-#[repr(C)]
-pub struct ErrorInfo {
-    code: i32,
-    message: *mut c_char,
-}
+- Return error codes (`0` = success, negative = error) with an out-parameter for the result
+- Use a `*mut ErrorInfo` struct to pass error details (code + message)
+- Catch panics with `std::panic::catch_unwind` to prevent unwinding across FFI boundaries
 
-#[no_mangle]
-pub extern "C" fn rust_operation(
-    input: *const c_char,
-    error: *mut ErrorInfo,
-) -> *mut c_char {
-    // Clear error initially
-    if !error.is_null() {
-        unsafe {
-            (*error).code = 0;
-            (*error).message = ptr::null_mut();
-        }
-    }
-
-    // Parse input
-    let input_str = unsafe {
-        if input.is_null() {
-            set_error(error, 1, "Null input");
-            return ptr::null_mut();
-        }
-        match CStr::from_ptr(input).to_str() {
-            Ok(s) => s,
-            Err(_) => {
-                set_error(error, 2, "Invalid UTF-8");
-                return ptr::null_mut();
-            }
-        }
-    };
-
-    // Perform operation
-    match perform_operation(input_str) {
-        Ok(result) => {
-            CString::new(result)
-                .map(|s| s.into_raw())
-                .unwrap_or_else(|_| {
-                    set_error(error, 3, "Failed to create result");
-                    ptr::null_mut()
-                })
-        }
-        Err(e) => {
-            set_error(error, 4, &e.to_string());
-            ptr::null_mut()
-        }
-    }
-}
-
-fn set_error(error: *mut ErrorInfo, code: i32, message: &str) {
-    if !error.is_null() {
-        unsafe {
-            (*error).code = code;
-            (*error).message = CString::new(message)
-                .map(|s| s.into_raw())
-                .unwrap_or(ptr::null_mut());
-        }
-    }
-}
-
-fn perform_operation(input: &str) -> Result<String, Box<dyn std::error::Error>> {
-    // Your actual operation here
-    Ok(format!("Processed: {}", input))
-}
-```
-
-## Part 7: Testing FFI Code
-
-### Unit Testing with Mocking
+## Part 6: Testing FFI Code
 
 ```rust
 #[cfg(test)]
@@ -588,29 +490,93 @@ mod tests {
 }
 ```
 
-### Integration Testing
+## Part 7: Volatile Memory Access & HAL Patterns
+
+In embedded systems, hardware registers are mapped to specific memory addresses. The compiler must not optimize away reads or writes to these addresses, even if the values appear unused — because the hardware side-effects matter.
+
+### Volatile Reads and Writes
+
+`core::ptr::read_volatile` and `core::ptr::write_volatile` guarantee that every access reaches memory, preventing the compiler from eliding or reordering them:
 
 ```rust
-// tests/integration_test.rs
-#[test]
-fn test_full_ffi_roundtrip() {
-    // Load the library
-    let lib = unsafe {
-        libloading::Library::new("./target/debug/libmylib.so")
-            .expect("Failed to load library")
-    };
+use core::ptr;
 
-    // Get function symbols
-    let add_fn: libloading::Symbol<unsafe extern "C" fn(i32, i32) -> i32> =
-        unsafe {
-            lib.get(b"rust_add").expect("Failed to load symbol")
-        };
+// Memory-mapped I/O: a hardware register at a fixed address
+const GPIO_OUTPUT_REG: *mut u32 = 0x6000_4004 as *mut u32;
+const GPIO_INPUT_REG: *const u32 = 0x6000_403C as *const u32;
 
-    // Test the function
-    let result = unsafe { add_fn(10, 32) };
-    assert_eq!(result, 42);
+/// Set a GPIO pin high by writing to the output register.
+///
+/// # Safety
+/// Caller must ensure the address is a valid, mapped hardware register.
+unsafe fn gpio_set_high(pin: u8) {
+    let current = ptr::read_volatile(GPIO_OUTPUT_REG);
+    ptr::write_volatile(GPIO_OUTPUT_REG, current | (1 << pin));
+}
+
+/// Read the current state of all GPIO input pins.
+///
+/// # Safety
+/// Caller must ensure the address is a valid, mapped hardware register.
+unsafe fn gpio_read_all() -> u32 {
+    ptr::read_volatile(GPIO_INPUT_REG)
 }
 ```
+
+**Why not just use `*ptr`?** A normal dereference may be optimized away if the compiler decides the value is never "really" used, or it may be merged with adjacent accesses. Hardware registers have *side effects* on read (e.g. clearing an interrupt flag) or write (e.g. toggling a pin), so every access must be preserved.
+
+### The Memory-Mapped I/O (MMIO) Pattern
+
+Embedded Rust crates typically wrap raw register addresses in a typed struct:
+
+```rust,ignore
+/// A register block representing a peripheral's control registers.
+#[repr(C)]
+struct GpioRegisters {
+    output:     u32,   // offset 0x00
+    output_set: u32,   // offset 0x04
+    output_clr: u32,   // offset 0x08
+    input:      u32,   // offset 0x0C
+}
+
+impl GpioRegisters {
+    /// # Safety
+    /// The base address must point to a valid GPIO register block.
+    unsafe fn from_base(base: usize) -> &'static mut Self {
+        &mut *(base as *mut Self)
+    }
+
+    fn set_pin(&mut self, pin: u8) {
+        // Safety: this struct is only constructed over valid MMIO memory
+        unsafe {
+            core::ptr::write_volatile(&mut self.output_set, 1 << pin);
+        }
+    }
+
+    fn read_input(&self) -> u32 {
+        unsafe { core::ptr::read_volatile(&self.input) }
+    }
+}
+```
+
+### The HAL Trait Pattern (`embedded-hal`)
+
+The `embedded-hal` crate defines vendor-neutral traits that any microcontroller HAL can implement. This lets application code and drivers be portable across chips:
+
+```rust,ignore
+use embedded_hal::digital::OutputPin;
+
+/// Blink an LED using any OutputPin — works on ESP32, STM32, nRF, etc.
+fn blink<P: OutputPin>(led: &mut P, delay_ms: u32) {
+    led.set_high().ok();
+    // ... delay ...
+    led.set_low().ok();
+}
+```
+
+Chip vendors (like `esp-hal`, `stm32-hal`) provide concrete types that implement these traits, wrapping volatile register access in safe abstractions. This is the same pattern we saw in Part 6 — safe wrappers around unsafe internals — applied to hardware.
+
+**Day 4 preview**: In the ESP32-C3 exercises, you will use `esp-hal` which builds on these exact patterns — `Output::new()` returns a type implementing `OutputPin`, hiding all volatile register manipulation behind a safe, type-checked API.
 
 ## Best Practices
 

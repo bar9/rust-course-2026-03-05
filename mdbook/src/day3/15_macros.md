@@ -33,11 +33,29 @@ macro_rules! say_hello {
 say_hello!(); // Prints: Hello!
 ```
 
-### Pattern Matching Types
+### Fragment Specifiers
 
-Macros use pattern matching with specific fragment specifiers:
+Macros use pattern matching with fragment specifiers that match different parts of Rust syntax:
 
-#### 1. `item` - Items like functions, structs, modules
+| Specifier | Matches | Example |
+|-----------|---------|---------|
+| `$x:expr` | Expressions | `5 + 3`, `foo()`, `if a { b } else { c }` |
+| `$x:ident` | Identifiers | `my_var`, `String`, `foo` |
+| `$x:ty` | Types | `i32`, `Vec<String>`, `&str` |
+| `$x:tt` | Single token tree | Any token or `()`/`[]`/`{}`-delimited group |
+| `$x:pat` | Patterns | `Some(x)`, `0..=9`, `_` |
+| `$x:block` | Code blocks | `{ stmt; stmt; expr }` |
+| `$x:stmt` | Statements | `let x = 5`, `x.push(1)` |
+| `$x:item` | Items | `fn`, `struct`, `impl`, `mod` definitions |
+| `$x:path` | Paths | `std::vec::Vec`, `crate::module::Type` |
+| `$x:literal` | Literals | `42`, `"hello"`, `true` |
+| `$x:vis` | Visibility | `pub`, `pub(crate)`, *(empty)* |
+| `$x:lifetime` | Lifetimes | `'a`, `'static` |
+| `$x:meta` | Attributes | `derive(Debug)`, `cfg(test)` |
+
+**Edition 2024 note**: `expr` now also matches `const` and `_` expressions. Use `expr_2021` for the old behavior.
+
+Here are the most commonly used specifiers in practice:
 
 ```rust
 macro_rules! create_function {
@@ -52,102 +70,15 @@ create_function!(foo);
 foo(); // Prints: You called foo!
 ```
 
-#### 2. `block` - Code blocks
-
-```rust
-macro_rules! time_it {
-    ($block:block) => {
-        let start = std::time::Instant::now();
-        $block
-        println!("Took: {:?}", start.elapsed());
-    };
-}
-
-time_it!({
-    std::thread::sleep(std::time::Duration::from_millis(100));
-    println!("Work done!");
-});
-```
-
-#### 3. `stmt` - Statements
-
-```rust
-macro_rules! debug_stmt {
-    ($stmt:stmt) => {
-        println!("Executing: {}", stringify!($stmt));
-        $stmt
-    };
-}
-
-debug_stmt!(let x = 42);
-```
-
-#### 4. `expr` - Expressions
-
 ```rust
 macro_rules! double {
-    ($e:expr) => {
-        $e * 2
-    };
+    ($e:expr) => { $e * 2 };
 }
 
 let result = double!(5 + 3); // 16
 ```
 
-**Note: Edition 2024 Change**: The `expr` fragment now also matches `const` and `_` expressions. For backwards compatibility, use `expr_2021` if you need the old behavior that doesn't match these expressions.
-
-#### 5. `ty` - Types
-
-```rust
-macro_rules! create_struct {
-    ($name:ident, $field_type:ty) => {
-        struct $name {
-            value: $field_type,
-        }
-    };
-}
-
-create_struct!(MyStruct, i32);
-```
-
-#### 6. `ident` - Identifiers
-
-```rust
-macro_rules! getter {
-    ($field:ident) => {
-        fn $field(&self) -> &str {
-            &self.$field
-        }
-    };
-}
-```
-
-#### 7. `path` - Paths like `std::vec::Vec`
-
-```rust
-macro_rules! use_type {
-    ($path:path) => {
-        let _instance: $path = Default::default();
-    };
-}
-
-use_type!(String);
-```
-
-#### 8. `literal` - Literal values
-
-```rust
-macro_rules! print_literal {
-    ($lit:literal) => {
-        println!("Literal: {}", $lit);
-    };
-}
-
-print_literal!("hello");
-print_literal!(42);
-```
-
-#### 9. `tt` - Token trees (any valid tokens)
+`tt` (token tree) is the most flexible — it matches anything and is often used with repetition to accept arbitrary input:
 
 ```rust
 macro_rules! capture_tokens {
@@ -157,70 +88,6 @@ macro_rules! capture_tokens {
 }
 
 capture_tokens!(hello world 1 + 2);
-```
-
-#### 10. `pat` - Patterns
-
-```rust
-macro_rules! match_pattern {
-    ($val:expr, $($pat:pat => $result:expr),+) => {
-        match $val {
-            $($pat => $result,)+
-        }
-    };
-}
-
-let x = match_pattern!(5,
-    0..=3 => "low",
-    4..=6 => "medium",
-    _ => "high"
-);
-```
-
-#### 11. `vis` - Visibility qualifiers
-
-```rust
-macro_rules! make_struct {
-    ($vis:vis struct $name:ident) => {
-        $vis struct $name {
-            value: i32,
-        }
-    };
-}
-
-make_struct!(pub struct PublicStruct);
-```
-
-#### 12. `lifetime` - Lifetime parameters
-
-```rust
-macro_rules! with_lifetime {
-    ($lt:lifetime) => {
-        struct Ref<$lt> {
-            data: &$lt str,
-        }
-    };
-}
-
-with_lifetime!('a);
-```
-
-#### 13. `meta` - Attributes
-
-```rust
-macro_rules! with_attributes {
-    ($(#[$meta:meta])* struct $name:ident) => {
-        $(#[$meta])*
-        struct $name {
-            value: i32,
-        }
-    };
-}
-
-with_attributes! {
-    #[derive(Debug, Clone)]
-    struct MyStruct
-}
 ```
 
 ### Multiple Patterns
@@ -307,29 +174,7 @@ create_and_use!(my_var); // Creates my_var in caller's scope
 
 ## Debugging Macros
 
-### Using `trace_macros!`
-
-```rust,ignore
-#![feature(trace_macros)]
-
-trace_macros!(true);
-my_macro!(args);
-trace_macros!(false);
-```
-
-### Using `log_syntax!`
-
-```rust,ignore
-#![feature(log_syntax)]
-
-macro_rules! debug_macro {
-    ($($arg:tt)*) => {
-        log_syntax!($($arg)*);
-    };
-}
-```
-
-### Cargo Expand
+Use `cargo expand` to see what a macro expands to:
 
 ```bash
 cargo install cargo-expand
@@ -451,48 +296,6 @@ Common derive macros in the Rust ecosystem:
 - `derive_more`: `#[derive(From, Display)]` — common trait implementations without boilerplate
 
 These macros follow the same pattern: annotate your type with `#[derive(MacroName)]`, and the proc macro generates the trait implementation at compile time.
-
-## Common Macro Patterns
-
-### Callback Pattern
-
-```rust
-macro_rules! with_callback {
-    ($setup:expr, $callback:expr) => {{
-        let result = $setup;
-        $callback(&result);
-        result
-    }};
-}
-
-let data = with_callback!(
-    vec![1, 2, 3],
-    |v: &Vec<i32>| println!("Created vector with {} elements", v.len())
-);
-```
-
-### Configuration Pattern
-
-```rust
-macro_rules! config {
-    ($($key:ident : $value:expr),* $(,)?) => {{
-        #[derive(Debug)]
-        struct Config {
-            $($key: std::option::Option<String>,)*
-        }
-
-        Config {
-            $($key: Some($value.to_string()),)*
-        }
-    }};
-}
-
-let cfg = config! {
-    host: "localhost",
-    port: "8080",
-    database: "mydb"
-};
-```
 
 ## Best Practices
 

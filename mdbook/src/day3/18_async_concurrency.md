@@ -183,55 +183,6 @@ fn fan_in_pattern() {
 }
 ```
 
-### Synchronization Patterns
-
-#### Worker Pool
-
-```rust,ignore
-use std::sync::{Arc, Mutex, mpsc};
-use std::thread;
-
-struct ThreadPool {
-    workers: Vec<thread::JoinHandle<()>>,
-    sender: mpsc::Sender<Box<dyn FnOnce() + Send + 'static>>,
-}
-
-impl ThreadPool {
-    fn new(size: usize) -> Self {
-        let (sender, receiver) = mpsc::channel();
-        let receiver = Arc::new(Mutex::new(receiver));
-        let mut workers = Vec::with_capacity(size);
-
-        for id in 0..size {
-            let receiver = Arc::clone(&receiver);
-            let worker = thread::spawn(move || loop {
-                let job = receiver.lock().unwrap().recv();
-                match job {
-                    Ok(job) => {
-                        println!("Worker {} executing job", id);
-                        job();
-                    }
-                    Err(_) => {
-                        println!("Worker {} shutting down", id);
-                        break;
-                    }
-                }
-            });
-            workers.push(worker);
-        }
-
-        ThreadPool { workers, sender }
-    }
-
-    fn execute<F>(&self, f: F)
-    where
-        F: FnOnce() + Send + 'static,
-    {
-        self.sender.send(Box::new(f)).unwrap();
-    }
-}
-```
-
 ## Part 2: Async Programming
 
 ### Understanding Futures
@@ -254,6 +205,41 @@ async fn simple_async() -> i32 {
     42  // Returns impl Future<Output = i32>
 }
 ```
+
+### Async Blocks
+
+Just as closures create anonymous functions, **async blocks** create anonymous futures. They are written `async { ... }` or `async move { ... }`:
+
+```rust,ignore
+use std::future::Future;
+
+fn make_future(x: i32) -> impl Future<Output = i32> {
+    async move {
+        x + 1  // captures `x` by move, returns i32 when awaited
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    // Inline async block — useful in combinators, closures, or spawn calls
+    let fut = async {
+        let a = fetch_value().await;
+        let b = fetch_value().await;
+        a + b
+    };
+
+    let result = fut.await;
+    println!("result = {}", result);
+}
+
+async fn fetch_value() -> i32 { 42 }
+```
+
+Key points:
+- An async block produces a value of type `impl Future<Output = T>` where `T` is the type of the last expression.
+- `async move { ... }` captures variables **by value** (like `move ||` closures). Without `move`, variables are captured **by reference**.
+- Async blocks are **lazy** — nothing runs until the future is `.await`ed or polled.
+- They are commonly used to construct futures inline, e.g. when passing to `tokio::spawn`, `join!`, or iterator adapters like `map`.
 
 ### The Tokio Runtime
 
@@ -528,7 +514,7 @@ async fn fetch_many_urls(urls: Vec<String>) -> Vec<Result<String, reqwest::Error
 
 ### Hybrid Approaches: `spawn_blocking`
 
-Real applications often combine async I/O with CPU-bound work. The key tool is `tokio::task::spawn_blocking`, which moves a closure onto a dedicated thread pool separate from Tokio's async worker threads. This is the pattern used in Day 4 to run image transforms without blocking the HTTP server.
+Real applications often combine async I/O with CPU-bound work. The key tool is `tokio::task::spawn_blocking`, which moves a closure onto a dedicated thread pool separate from Tokio's async worker threads.
 
 ```rust,ignore
 use tokio::task;
@@ -585,7 +571,7 @@ async fn blocking_work() {
 
 ### Async Mutex vs Sync Mutex
 
-**Rule of thumb**: use `std::sync::Mutex` when the critical section is short and never crosses an `.await` point. Use `tokio::sync::Mutex` only when you need to hold the lock across an `.await`. The Tokio documentation itself recommends `std::sync::Mutex` for brief operations — it's faster for sync-only access. In Day 4, the imgforge server uses `Arc<std::sync::Mutex<HashMap>>` for job tracking because lock duration is microseconds.
+**Rule of thumb**: use `std::sync::Mutex` when the critical section is short and never crosses an `.await` point. Use `tokio::sync::Mutex` only when you need to hold the lock across an `.await`. The Tokio documentation itself recommends `std::sync::Mutex` for brief operations — it's faster for sync-only access.
 
 ```rust,ignore
 // Use tokio::sync::Mutex for async contexts
@@ -614,25 +600,6 @@ fn sync_mutex_in_async() {
 }
 ```
 
-## Performance Considerations
-
-### Memory Usage
-
-- **Thread**: ~2MB stack per thread (configurable)
-- **Async task**: ~2KB per task
-- **Implication**: Can spawn thousands of async tasks vs hundreds of threads
-
-### Context Switching
-
-- **Threads**: Kernel-level context switch (~1-10μs)
-- **Async tasks**: User-space task switch (~100ns)
-- **Implication**: Much lower overhead for many concurrent operations
-
-### Throughput vs Latency
-
-- **Threads**: Better for consistent latency requirements
-- **Async**: Better for maximizing throughput with many connections
-
 ## Best Practices
 
 1. **Start simple**: Use threads for CPU work, async for I/O
@@ -641,6 +608,64 @@ fn sync_mutex_in_async() {
 4. **Profile and measure**: Don't assume, benchmark your specific use case
 5. **Handle errors properly**: Both models require careful error handling
 6. **Consider the ecosystem**: Check library support for your chosen model
+
+## Async Beyond Tokio: Embassy for Embedded Systems
+
+Everything above uses **tokio**, which requires an operating system with threads and a heap allocator. But what about `no_std` embedded targets like the ESP32-C3? That is where **Embassy** comes in.
+
+### Embassy: A `no_std` Async Runtime
+
+Embassy is an async executor designed for bare-metal microcontrollers. It provides the same `async`/`await` syntax you already know, but runs without an OS, without threads, and without a heap.
+
+| Aspect | Tokio | Embassy |
+|--------|-------|---------|
+| **Target** | Desktop / server (Linux, macOS, Windows) | Bare-metal microcontrollers (no OS) |
+| **Scheduling** | Thread-pool executor | Interrupt-driven single-core executor |
+| **Memory** | Heap-allocated tasks (`Box<dyn Future>`) | Statically allocated tasks (no heap) |
+| **Blocking** | `spawn_blocking` for CPU work | Everything is cooperative; blocking = stalling |
+| **Timer** | OS timers via epoll/kqueue | Hardware peripheral timers |
+| **Ecosystem** | axum, reqwest, sqlx, … | embassy-net, embassy-usb, esp-hal, … |
+
+### Task Model Comparison
+
+**Tokio** spawns tasks onto a shared thread pool:
+
+```rust,ignore
+// Tokio: tasks are heap-allocated, run on worker threads
+tokio::spawn(async move {
+    let data = fetch_from_network().await;
+    process(data).await;
+});
+```
+
+**Embassy** uses a static task macro — each task is a known-size state machine allocated at compile time:
+
+```rust,ignore
+// Embassy: tasks are statically allocated, run on a single-threaded executor
+#[embassy_executor::task]
+async fn sensor_task(sensor: TemperatureSensor) {
+    loop {
+        let temp = sensor.read().await;   // Yields to executor while waiting
+        process(temp);
+        Timer::after_secs(1).await;       // Hardware timer, not OS timer
+    }
+}
+```
+
+### How Embassy Scheduling Works
+
+Tokio uses OS threads and epoll/kqueue to multiplex tasks. Embassy instead hooks directly into hardware interrupts:
+
+1. The executor puts the CPU to sleep (low-power wait-for-interrupt).
+2. A hardware event fires (timer expires, UART byte received, GPIO edge detected).
+3. The interrupt handler wakes the corresponding task.
+4. The executor polls that task until it yields again.
+
+This means **zero context-switch overhead** and **automatic low-power behavior** — the CPU sleeps whenever no task is ready.
+
+### Why This Matters for Day 4
+
+In the ESP32-C3 exercises (Day 4), you will use `esp-hal` which provides async-capable peripheral drivers. The patterns are the same `async`/`await` you learned here — only the runtime is different. Understanding that Rust's `Future` trait is runtime-agnostic is the key insight: your `async fn` works with tokio *or* Embassy, because the language-level mechanism is identical.
 
 ## Exercise: Parallel `WordCounter`
 

@@ -9,7 +9,7 @@
 - Recognize the Builder, Newtype, and Type-State patterns
 - Understand RAII via the `Drop` trait and zero-copy techniques with `Cow`
 
-This chapter covers design patterns that come up repeatedly in production Rust code. Several of them are applied directly in the Day 4 imgforge project.
+This chapter covers design patterns that come up repeatedly in production Rust code. Several of them are applied directly in the Day 4 ESP32-C3 embedded project.
 
 ---
 
@@ -45,7 +45,7 @@ myapp/
     integration.rs # imports myapp as a library
 ```
 
-Production Rust projects like ripgrep and cargo itself follow this pattern. The Day 4 imgforge project (Chapter 20) uses it from the start.
+Production Rust projects like ripgrep and cargo itself follow this pattern. The Day 4 ESP32-C3 project uses it from Chapter 22 onward: a `lib.rs` exports testable temperature and communication modules, while `bin/main.rs` only initializes hardware and runs the main loop.
 
 ---
 
@@ -110,7 +110,7 @@ fn create_backend(use_turbo: bool) -> Box<dyn Transform> {
 
 The `Send + Sync` bounds on the trait allow the boxed backend to be shared across threads (e.g., stored in `Arc` and passed to async handlers).
 
-This pattern enables testing without modifying production code -- pass `MockBackend` in tests, `ImageRsBackend` in production. It is central to the Day 4 imgforge architecture (Chapters 20-24).
+This pattern enables testing without modifying production code -- pass `MockBackend` in tests, the real implementation in production. In Day 4, the ESP32-C3 project uses this approach with a `TemperatureSensorHal` trait: the real `Esp32TemperatureSensor` runs on hardware, while `MockTemperatureSensor` enables desktop testing (Chapter 22).
 
 ---
 
@@ -162,7 +162,7 @@ impl std::error::Error for Error {}
 
 For libraries and applications where callers need to handle specific error variants, `derive_more::From` or `thiserror` are appropriate. `anyhow` is suited for top-level binaries where you only need to print the error and exit.
 
-The Day 4 imgforge project (Chapter 20) uses this exact pattern with `derive_more::From`.
+This exact pattern works equally well in embedded and desktop Rust projects.
 
 ---
 
@@ -221,7 +221,7 @@ pub fn create_backend() -> Box<dyn Transform> {
 - **Faster compile times** -- fewer dependencies to download and build.
 - **No unused code** -- the compiler does not process gated modules unless requested.
 
-Feature flags are used throughout Day 4: Chapter 21 (TurboJPEG backend), Chapter 22 (Axum server), and Chapter 25 (egui GUI).
+Feature flags are used throughout Day 4: the ESP32-C3 project gates hardware dependencies behind an `embedded` feature so that business logic can be tested on desktop without ESP-specific crates (Chapters 22-24).
 
 ---
 
@@ -552,4 +552,4 @@ This chapter covered ten patterns that appear in real Rust projects:
 | Zero-copy / Cow | Avoid unnecessary allocations |
 | Best practices | Guidelines for idiomatic Rust project structure |
 
-The first four patterns are applied directly in Day 4 when building the imgforge project. The remaining patterns are general techniques that appear across the Rust ecosystem.
+The first four patterns are applied directly in Day 4 when building the ESP32-C3 embedded project. The remaining patterns are general techniques that appear across the Rust ecosystem.

@@ -423,48 +423,6 @@ mod tests {
 }
 ```
 
-For more complex setup, use a builder pattern:
-
-```rust
-#[cfg(test)]
-mod tests {
-    struct TestConfig {
-        input: Vec<i32>,
-        expected: i32,
-    }
-
-    impl TestConfig {
-        fn new() -> Self {
-            Self { input: vec![1, 2, 3], expected: 6 }
-        }
-
-        fn with_input(mut self, input: Vec<i32>) -> Self {
-            self.input = input;
-            self
-        }
-
-        fn with_expected(mut self, expected: i32) -> Self {
-            self.expected = expected;
-            self
-        }
-    }
-
-    #[test]
-    fn test_sum_default() {
-        let config = TestConfig::new();
-        assert_eq!(config.input.iter().sum::<i32>(), config.expected);
-    }
-
-    #[test]
-    fn test_sum_custom() {
-        let config = TestConfig::new()
-            .with_input(vec![10, 20])
-            .with_expected(30);
-        assert_eq!(config.input.iter().sum::<i32>(), config.expected);
-    }
-}
-```
-
 ### Mocking with Traits
 
 Rust doesn't have a built-in mocking framework like Moq or Mockito. Instead, use **trait-based dependency injection** — define behavior behind a trait, then provide a mock implementation in tests:
@@ -530,7 +488,7 @@ mod tests {
 }
 ```
 
-This pattern is idiomatic Rust and works without any external crate. In Day 4, the imgforge project uses exactly this approach: a `Transform` trait defines image processing behavior, with a real `ImageRsBackend` for production and easy mock implementations for testing. For more complex mocking needs, crates like `mockall` can auto-generate mock implementations from traits.
+This pattern is idiomatic Rust and works without any external crate. In Day 4, the ESP32-C3 exercises use exactly this approach: a `TemperatureSensorHal` trait defines sensor behavior, with a real ESP32 implementation for hardware and a `MockTemperatureSensor` for desktop testing. For more complex mocking needs, crates like `mockall` can auto-generate mock implementations from traits.
 
 ### Testing Async Code
 

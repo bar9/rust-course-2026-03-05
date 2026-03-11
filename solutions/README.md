@@ -17,36 +17,40 @@ solutions/
 │   ├── 14_testing/          # Testing exercises (MarkdownProcessor)
 │   ├── 17_serde/            # Serde serialization exercises
 │   └── 18_concurrency/      # Async/concurrency exercises (Parallel WordCounter)
-└── day4/                    # Day 4: imgforge — Image Processing Service
-    └── imgforge/            # Single incremental project built across chapters 20-25
-        ├── src/             # CLI, web server, FFI, batch processing
-        └── tests/           # Unit + integration tests
+└── day4/                    # Day 4: ESP32-C3 Embedded Systems
+    ├── chapter20_hardware_hello/    # LED blink, temperature sensor basics
+    ├── chapter21_data_structures/   # no_std data structures, circular buffer
+    ├── chapter22_testing/           # Testing embedded code on desktop
+    ├── chapter23_communication/     # JSON serialization over serial
+    ├── chapter24_integration/       # Production integration & deployment
+    ├── chapter25_extensions/        # Power management & optimization
+    └── esp_generate_output/         # Helper for generating expected output
 ```
 
 Day 3 has 3 exercise projects (testing, serde, concurrency). The remaining Day 3 chapters (Cargo, macros, unsafe/FFI, design patterns) are theory-only.
 
-### Day 4 — imgforge
+### Day 4 — ESP32-C3 Embedded Systems
 
-The `imgforge` project is a single Cargo crate that evolves across 6 chapters:
+Day 4 consists of 6 incremental chapters building an embedded temperature monitoring system on the ESP32-C3 microcontroller:
 
-| Chapter | What's added | Key files |
-|---------|-------------|-----------|
-| Ch20 | CLI tool, project structure | main.rs, lib.rs, error.rs, config.rs, transform.rs |
-| Ch21 | FFI backend (optional) | transform_turbojpeg.rs |
-| Ch22 | Axum HTTP server | server.rs |
-| Ch23 | Concurrent job processing | server.rs (jobs), spawn_blocking |
-| Ch24 | Tests, batch mode | tests/, batch.rs |
-| Ch25 | Optional GUI | (stretch goal) |
+| Chapter | Topic | Solution directory |
+|---------|-------|--------------------|
+| Ch 20 | Hardware hello — LED blink, temperature sensor | `chapter20_hardware_hello` |
+| Ch 21 | Embedded foundations — no_std, heapless collections | `chapter21_data_structures` |
+| Ch 22 | Testing — desktop testing of embedded code | `chapter22_testing` |
+| Ch 23 | Communication — JSON over serial with serde | `chapter23_communication` |
+| Ch 24 | Integration — production deployment | `chapter24_integration` |
+| Ch 25 | Performance — power management & optimization | `chapter25_extensions` |
 
 ```bash
-# Build and test
-cargo build --manifest-path solutions/day4/imgforge/Cargo.toml
-cargo test --manifest-path solutions/day4/imgforge/Cargo.toml
+# Run tests (desktop, no hardware required)
+cargo test --manifest-path solutions/day4/chapter22_testing/Cargo.toml --no-default-features
 ```
 
 ## Source Information
 
 - **Day 1 & 2 solutions**: Cloned from the `solutions` branch of https://github.com/bar9/rust-course-2025-09-18
+- **Day 4 solutions**: Ported from https://github.com/bar9/rust-course-2025-11-20 (old Day 3)
 
 ## Usage
 

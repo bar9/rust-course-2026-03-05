@@ -725,4 +725,4 @@ mod tests {
 | `#[serde(untagged)]` | Try each variant in order, no discriminator |
 | Format-agnostic | Same derives work with JSON, TOML, YAML, bincode, etc. |
 
-This chapter prepares you for Day 4, where serde is used in the Axum web server ([Chapter 22](../day4/22_async_web_server.md)) to serialize `JobStatus` responses and in the concurrency chapter ([Chapter 23](../day4/23_concurrency.md)) for the `JobState` enum with `#[serde(rename_all = "lowercase")]`.
+This chapter prepares you for Day 4, where serde is used in the ESP32-C3 project to serialize temperature readings and commands as JSON over USB serial ([Chapter 23](../day4/23_data_communication.md)).

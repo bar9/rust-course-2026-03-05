@@ -1,0 +1,175 @@
+diff --git a/mdbook/src/day1/02_fundamentals.md b/mdbook/src/day1/02_fundamentals.md
+index d983895..d3fa061 100644
+--- a/mdbook/src/day1/02_fundamentals.md
++++ b/mdbook/src/day1/02_fundamentals.md
+@@ -20,12 +20,12 @@ Rust's type system is designed around two core principles:
+ 
+ ### Comparison with Familiar Languages
+ 
+-| Concept | C++ | C#/.NET | Rust |
+-|---------|-----|---------|------|
+-| Null checking | Runtime (segfaults) | Runtime (NullReferenceException) | Compile-time (Option<T>) |
+-| Memory management | Manual (new/delete) | GC | Compile-time (ownership) |
+-| Thread safety | Runtime (mutexes) | Runtime (locks) | Compile-time (Send/Sync) |
+-| Type inference | `auto` (C++11+) | `var` | Extensive |
++| Concept           | C++                 | C#/.NET                          | Rust                     |
++| ----------------- | ------------------- | -------------------------------- | ------------------------ |
++| Null checking     | Runtime (segfaults) | Runtime (NullReferenceException) | Compile-time (Option<T>) |
++| Memory management | Manual (new/delete) | GC                               | Compile-time (ownership) |
++| Thread safety     | Runtime (mutexes)   | Runtime (locks)                  | Compile-time (Send/Sync) |
++| Type inference    | `auto` (C++11+)     | `var`                            | Extensive                |
+ 
+ ---
+ 
+@@ -60,7 +60,7 @@ const int y = 5;  // Immutable
+ ```
+ 
+ ```csharp
+-// C#: Mutable by default  
++// C#: Mutable by default
+ int x = 5;              // Mutable
+ readonly int y = 5;     // Immutable (field-level)
+ ```
+@@ -110,12 +110,12 @@ Rust is explicit about integer sizes to prevent overflow issues:
+ ```rust
+ // Signed integers
+ let a: i8 = -128;      // 8-bit signed (-128 to 127)
+-let b: i16 = 32_000;   // 16-bit signed  
++let b: i16 = 32_000;   // 16-bit signed
+ let c: i32 = 2_000_000_000;  // 32-bit signed (default)
+ let d: i64 = 9_223_372_036_854_775_807; // 64-bit signed
+ let e: i128 = 1;       // 128-bit signed
+ 
+-// Unsigned integers  
++// Unsigned integers
+ let f: u8 = 255;       // 8-bit unsigned (0 to 255)
+ let g: u32 = 4_000_000_000; // 32-bit unsigned
+ let h: u64 = 18_446_744_073_709_551_615; // 64-bit unsigned
+@@ -213,7 +213,7 @@ let vec = vec![1, 2, 3];    // Heap-allocated, growable
+ 
+ **Key Differences from Vectors:**
+ | Feature | Array `[T; N]` | Vector `Vec<T>` |
+-|---------|----------------|-----------------|
++| ------- | -------------- | --------------- |
+ | Size | Fixed at compile time | Growable at runtime |
+ | Memory | Stack-allocated | Heap-allocated |
+ | Performance | Faster for small, fixed data | Better for dynamic data |
+@@ -249,11 +249,11 @@ fn subtract(x: i32, y: i32) -> i32 {
+ 
+ ### Key Differences from C++/.NET
+ 
+-| Aspect | C++ | C#/.NET | Rust |
+-|--------|-----|---------|------|
+-| Return syntax | `return x;` | `return x;` | `x` (no semicolon) |
+-| Parameter types | `int x` | `int x` | `x: i32` |
+-| Return type | `int func()` | `int Func()` | `fn func() -> i32` |
++| Aspect          | C++          | C#/.NET      | Rust               |
++| --------------- | ------------ | ------------ | ------------------ |
++| Return syntax   | `return x;`  | `return x;`  | `x` (no semicolon) |
++| Parameter types | `int x`      | `int x`      | `x: i32`           |
++| Return type     | `int func()` | `int Func()` | `fn func() -> i32` |
+ 
+ ### Parameters: By Value vs By Reference
+ 
+@@ -270,7 +270,7 @@ fn borrow_immutable(s: &String) {
+     // s reference is dropped, original still valid
+ }
+ 
+-// By mutable reference - mutable borrowing  
++// By mutable reference - mutable borrowing
+ fn borrow_mutable(s: &mut String) {
+     s.push_str(" world");
+ }
+@@ -278,11 +278,11 @@ fn borrow_mutable(s: &mut String) {
+ // Example usage
+ fn main() {
+     let mut message = String::from("Hello");
+-    
++
+     borrow_immutable(&message);    // ✅ Can borrow immutably
+     borrow_mutable(&mut message);  // ✅ Can borrow mutably
+     take_ownership(message);       // ✅ Transfers ownership
+-    
++
+     // println!("{}", message);    // ❌ Error: value moved
+ }
+ ```
+@@ -327,7 +327,7 @@ Rust offers three loop constructs, each with specific use cases:
+ let mut counter = 0;
+ let result = loop {
+     counter += 1;
+-    
++
+     if counter == 10 {
+         break counter * 2;  // loop can return a value!
+     }
+@@ -337,12 +337,12 @@ println!("Result: {}", result);  // Prints: Result: 20
+ // Loop labels for nested loops
+ 'outer: loop {
+     println!("Entered outer loop");
+-    
++
+     'inner: loop {
+         println!("Entered inner loop");
+         break 'outer;  // Break the outer loop
+     }
+-    
++
+     println!("This won't execute");
+ }
+ ```
+@@ -401,12 +401,12 @@ for i in (1..=3).rev() {
+ 
+ ### Comparison with C++/.NET
+ 
+-| Feature | C++ | C#/.NET | Rust |
+-|---------|-----|---------|------|
+-| for-each | `for (auto& x : vec)` | `foreach (var x in list)` | `for x in &vec` |
+-| Index loop | `for (int i = 0; i < n; i++)` | `for (int i = 0; i < n; i++)` | `for i in 0..n` |
+-| Infinite | `while (true)` | `while (true)` | `loop` |
+-| Break with value | Not supported | Not supported | `break value` |
++| Feature          | C++                           | C#/.NET                       | Rust            |
++| ---------------- | ----------------------------- | ----------------------------- | --------------- |
++| for-each         | `for (auto& x : vec)`         | `foreach (var x in list)`     | `for x in &vec` |
++| Index loop       | `for (int i = 0; i < n; i++)` | `for (int i = 0; i < n; i++)` | `for i in 0..n` |
++| Infinite         | `while (true)`                | `while (true)`                | `loop`          |
++| Break with value | Not supported                 | Not supported                 | `break value`   |
+ 
+ ### Control Flow Best Practices
+ 
+@@ -459,17 +459,17 @@ Strings in Rust are more complex than C++/.NET due to UTF-8 handling and ownersh
+ let mut owned_string = String::from("Hello");
+ owned_string.push_str(" world");
+ 
+-// &str: String slice, borrowed, usually stack-allocated  
++// &str: String slice, borrowed, usually stack-allocated
+ let string_slice: &str = "Hello world";
+ let slice_of_string: &str = &owned_string;
+ ```
+ 
+ ### Comparison Table
+ 
+-| Type | C++ Equivalent | C#/.NET Equivalent | Rust |
+-|------|----------------|-------------------|------|
+-| Owned | `std::string` | `string` | `String` |
+-| View/Slice | `std::string_view` | `ReadOnlySpan<char>` | `&str` |
++| Type       | C++ Equivalent     | C#/.NET Equivalent   | Rust     |
++| ---------- | ------------------ | -------------------- | -------- |
++| Owned      | `std::string`      | `string`             | `String` |
++| View/Slice | `std::string_view` | `ReadOnlySpan<char>` | `&str`   |
+ 
+ ### Common String Operations
+ 
+@@ -723,10 +723,10 @@ fn bmi_category(bmi: f64) -> &'static str {
+ fn main() {
+     let height = 1.75; // meters
+     let weight = 70.0;  // kg
+-    
++
+     let bmi = calculate_bmi(height, weight);
+     let category = bmi_category(bmi);
+-    
++
+     println!("BMI: {:.1}, Category: {}", bmi, category);
+ }
+ ```
