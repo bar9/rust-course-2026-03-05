@@ -1,16 +1,19 @@
 [package]
 edition      = "2024"
-name         = "chapter20_hardware_hello"
+name         = "chapter22_blinky_embassy"
 rust-version = "1.88"
 version      = "0.1.0"
 
 [[bin]]
-name = "chapter20_hardware_hello"
+name = "chapter22_blinky_embassy"
 path = "./src/bin/main.rs"
 
 [dependencies]
-esp-hal = { version = "1.0.0", features = ["esp32c3"] }
+esp-hal = { version = "1.0.0", features = ["esp32c3", "unstable"] }
+esp-rtos = { version = "0.2.0", features = ["embassy", "esp32c3"] }
 esp-bootloader-esp-idf = { version = "0.4.0", features = ["esp32c3"] }
+embassy-executor = { version = "0.9.1", features = [] }
+embassy-time = "0.5.0"
 critical-section = "1.2.0"
 esp-println = { version = "0.14.0", features = ["esp32c3"] }
 

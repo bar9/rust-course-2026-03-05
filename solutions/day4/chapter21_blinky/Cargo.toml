@@ -1,18 +1,17 @@
 [package]
 edition      = "2024"
-name         = "chapter20_hardware_hello"
+name         = "chapter21_blinky"
 rust-version = "1.88"
 version      = "0.1.0"
 
 [[bin]]
-name = "chapter20_hardware_hello"
+name = "chapter21_blinky"
 path = "./src/bin/main.rs"
 
 [dependencies]
 esp-hal = { version = "1.0.0", features = ["esp32c3"] }
 esp-bootloader-esp-idf = { version = "0.4.0", features = ["esp32c3"] }
 critical-section = "1.2.0"
-esp-println = { version = "0.14.0", features = ["esp32c3"] }
 
 [profile.dev]
 # Rust debug is too slow.

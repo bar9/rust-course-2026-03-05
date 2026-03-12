@@ -31,11 +31,7 @@ pub enum ConfigError {
 
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ConfigError::IoError(e) => write!(f, "IO error: {}", e),
-            ConfigError::ParseError(msg) => write!(f, "Parse error: {}", msg),
-            ConfigError::ValidationError(msg) => write!(f, "Validation error: {}", msg),
-        }
+        todo!()
     }
 }
 
@@ -55,6 +51,10 @@ impl From<std::io::Error> for ConfigError {
     }
 }
 
+///
+/// minimal doctest example
+/// ```assert(true)```
+///
 #[derive(Debug, PartialEq)]
 pub struct Config {
     settings: HashMap<String, String>,

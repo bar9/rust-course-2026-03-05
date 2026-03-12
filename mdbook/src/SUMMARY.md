@@ -32,10 +32,10 @@
 
 # Day 4: ESP32-C3 Embedded Systems
 
-- [Hardware Hello: ESP32-C3 Basics](day4/20_hardware_hello.md)
-- [Embedded Foundations: no_std](day4/21_embedded_foundations.md)
-- [Testing Embedded Code](day4/22_testing_embedded.md)
-- [Data & Communication](day4/23_data_communication.md)
-- [Integration & Deployment](day4/24_integration_deployment.md)
-- [Performance & Power Management](day4/25_complete_system.md)
+- [Hello World](day4/20_hardware_hello.md)
+- [Blinky](day4/21_blinky.md)
+- [Blinky with Embassy](day4/22_blinky_embassy.md)
+- [Temperature Sensor & Shared State](day4/23_temperature_sensor.md)
+- [Managed Temperature Store](day4/24_temperature_store.md)
+- [Serial Commands & JSON Output](day4/25_serial_logging.md)
 
